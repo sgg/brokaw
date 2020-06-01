@@ -12,4 +12,3 @@ pub mod raw;
 
 /// Types for sending commands, and reading responses
 pub mod types;
-

@@ -1,5 +1,5 @@
-use std::str::{from_utf8, from_utf8_unchecked};
 use std::borrow::Cow;
+use std::str::{from_utf8, from_utf8_unchecked};
 
 use crate::types::response_code::ResponseCode;
 
@@ -46,8 +46,7 @@ impl RawResponse {
 
     /// Return the initial response payload as a UTF-8 str
     pub fn first_line_as_utf8(&self) -> Result<&str, std::str::Utf8Error> {
-        from_utf8(&self.first_line)
-            .map(|s| s.trim())
+        from_utf8(&self.first_line).map(|s| s.trim())
     }
 
     pub fn first_line_to_utf8_lossy(&self) -> Cow<str> {
@@ -97,7 +96,9 @@ impl DataBlocks {
         self.line_boundaries.len()
     }
 
-    pub fn is_empty(&self) -> bool { self.line_boundaries.is_empty() }
+    pub fn is_empty(&self) -> bool {
+        self.line_boundaries.is_empty()
+    }
 }
 
 pub struct Iter<'a> {

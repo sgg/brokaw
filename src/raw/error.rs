@@ -21,7 +21,7 @@ pub enum Error {
     /// returned an out of spec response.
     /// This could also occur if an unsupported compression mechanism is enabled.
     #[error("Failed to parse response")]
-    Parse
+    Parse,
 }
 
 /// A Result returned by the low level API

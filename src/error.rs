@@ -18,11 +18,9 @@ pub enum Error {
     #[error("Config Error -- {0}")]
     Config(String),
     #[error("{msg}")]
-    Deserialization {
-        msg: String
-    },
+    Deserialization { msg: String },
     #[error("{0}")]
-    Deserialization2(String)
+    Deserialization2(String),
 }
 
 impl Error {
@@ -30,7 +28,7 @@ impl Error {
         Error::BadResponse {
             code: resp.code(),
             resp,
-            msg: None
+            msg: None,
         }
     }
     pub(crate) fn de(msg: impl AsRef<str>) -> Self {

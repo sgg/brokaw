@@ -7,11 +7,11 @@ use std::time::Duration;
 use log::*;
 use native_tls::TlsConnector;
 
-use crate::types::command::NntpCommand;
+use crate::raw::error::Result;
 use crate::raw::parse::{is_end_of_datablock, parse_data_block_line, parse_first_line};
 use crate::raw::response::{DataBlocks, RawResponse};
 use crate::raw::stream::NntpStream;
-use crate::raw::error::Result;
+use crate::types::command::NntpCommand;
 use crate::types::prelude::*;
 
 // FIXME(ux): Make this Debug once TlsConnector implements Debug
@@ -106,9 +106,7 @@ impl NntpConnection {
 
         let nntp_stream = if let Some(TlsConfig { connector, domain }) = tls_config.as_ref() {
             trace!("Wrapping TcpStream w/ TlsConnector");
-            connector
-                .connect(domain, tcp_stream)?
-                .into()
+            connector.connect(domain, tcp_stream)?.into()
         } else {
             trace!("No TLS config providing, continuing with plain text");
             tcp_stream.into()

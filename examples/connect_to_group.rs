@@ -1,5 +1,5 @@
-use log::*;
 use brokaw::client::ClientConfig;
+use log::*;
 use structopt::StructOpt;
 
 /// Connect to a server and get the info for a specified group

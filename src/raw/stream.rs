@@ -1,14 +1,14 @@
 use std::net::TcpStream;
 
 use native_tls::TlsStream;
-use std::io::{Read, Write};
 use std::io;
+use std::io::{Read, Write};
 
 /// A raw NNTP session
 #[derive(Debug)]
 pub enum NntpStream {
     Tls(TlsStream<TcpStream>),
-    Tcp(TcpStream)
+    Tcp(TcpStream),
 }
 
 impl From<TlsStream<TcpStream>> for NntpStream {

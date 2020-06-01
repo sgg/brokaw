@@ -2,11 +2,11 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use log::*;
-use native_tls::TlsConnector;
-use brokaw::types::command::*;
 use brokaw::raw::connection::{NntpConnection, TlsConfig};
 use brokaw::raw::response::RawResponse;
+use brokaw::types::command::*;
+use log::*;
+use native_tls::TlsConnector;
 use std::time::Duration;
 use structopt::StructOpt;
 

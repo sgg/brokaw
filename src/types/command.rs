@@ -128,29 +128,32 @@ pub enum List {
     OverviewFmt,
     Active,
     Counts { wildmat: Option<String> },
-    NoArgs
+    NoArgs,
 }
 
 impl fmt::Display for List {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "LIST")?;
         match self {
-
             List::OverviewFmt => write!(f, " OVERVIEW.FMT"),
             List::Active => write!(f, " ACTIVE"),
             List::NoArgs => Ok(()),
-            List::Counts { wildmat: Some(wildmat)} => write!(f, " COUNTS {}", wildmat),
-            List::Counts { wildmat: None } => write!(f, " COUNTS")
+            List::Counts {
+                wildmat: Some(wildmat),
+            } => write!(f, " COUNTS {}", wildmat),
+            List::Counts { wildmat: None } => write!(f, " COUNTS"),
         }
     }
 }
 
-
 impl NntpCommand for List {}
 
 pub enum XOver {
-    Range {low: ArticleNumber, high: ArticleNumber },
-    Current
+    Range {
+        low: ArticleNumber,
+        high: ArticleNumber,
+    },
+    Current,
 }
 impl fmt::Display for XOver {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

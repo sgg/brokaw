@@ -23,7 +23,7 @@ impl<B: Clone + NntpResponseBody> Response<B> {
     }
 }
 
-pub trait NntpResponseBody: for<'a> TryFrom<&'a RawResponse, Error=Error> {}
+pub trait NntpResponseBody: for<'a> TryFrom<&'a RawResponse, Error = Error> {}
 
 /// Response to the `GROUP` command
 #[derive(Clone, Debug)]
@@ -36,7 +36,7 @@ pub struct Group {
 
 impl<B> TryFrom<&RawResponse> for Response<B>
 where
-    B: NntpResponseBody + Clone
+    B: NntpResponseBody + Clone,
 {
     type Error = Error;
 
@@ -60,7 +60,8 @@ impl TryFrom<&RawResponse> for Group {
         let mut iter = lossy.split_whitespace();
 
         // pop the response code
-        iter.next().ok_or_else(|| Error::missing_field("response code"))?;
+        iter.next()
+            .ok_or_else(|| Error::missing_field("response code"))?;
 
         let number = parse_field(&mut iter, "number")?;
         let low = parse_field(&mut iter, "low")?;
@@ -122,11 +123,12 @@ impl TryFrom<&RawResponse> for Capabilities {
     }
 }
 
-fn parse_field<'a, T: FromStr>(iter: &mut impl Iterator<Item=&'a str>, name: impl AsRef<str>) -> Result<T> {
+fn parse_field<'a, T: FromStr>(
+    iter: &mut impl Iterator<Item = &'a str>,
+    name: impl AsRef<str>,
+) -> Result<T> {
     let name = name.as_ref();
-    iter
-        .next()
+    iter.next()
         .ok_or_else(|| Error::missing_field(name))
         .and_then(|s| s.parse().map_err(|_| Error::parse_error(name)))
 }
-
