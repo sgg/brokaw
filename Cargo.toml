@@ -1,0 +1,30 @@
+[package]
+name = "brokaw"
+version = "0.0.1"
+description = "A modern Usenet library for the modern Usenet user 📰"
+authors = ["Samani G. Gikandi <samani@gojulas.com>"]
+edition = "2018"
+license = "MIT"
+repository = "https://github.com/sgg/brokaw" # TODO(publish repo)
+documentation = "https://docs.rs/brokaw"        # TODO(publish crate)
+readme = "README.md"
+
+keywords = ["nntp", "netnews", "usenet"]
+categories = [ "network-programming"]
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.8"
+native-tls = "0.2.4"
+nom = "5.1"
+num_enum = "0.5.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+anyhow = "1.0.31"
+chrono = "0.4.11"
+env_logger = "0.7.1"
+rpassword = "4.0.5"
+structopt = "0.3.14"
