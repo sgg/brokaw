@@ -1,4 +1,3 @@
-use std::io;
 use crate::raw::response::RawResponse;
 use crate::types::response_code::ResponseCode;
 

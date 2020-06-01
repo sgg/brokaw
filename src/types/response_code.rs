@@ -19,34 +19,34 @@ pub enum ResponseCode {
 impl ResponseCode {
     pub fn is_info(&self) -> bool {
         //let foo = (self.copy() as u16) / 100;
-        let code = u16::from(self.clone());
+        let code = u16::from(*self);
         code >= 100 && code < 200
     }
 
     pub fn is_success(&self) -> bool {
-        let code = u16::from(self.clone());
+        let code = u16::from(*self);
         code >= 200 && code < 300
     }
 
     pub fn is_success_so_far(&self) -> bool {
-        let code = u16::from(self.clone());
+        let code = u16::from(*self);
         code >= 300 && code < 400
     }
 
     pub fn is_failure(&self) -> bool {
-        let code = u16::from(self.clone());
+        let code = u16::from(*self);
         code >= 400 && code < 500
     }
 
     pub fn is_error(&self) -> bool {
-        let code = u16::from(self.clone());
+        let code = u16::from(*self);
         code >= 500 && code < 600
     }
 }
 
 impl From<u16> for ResponseCode {
     fn from(code: u16) -> Self {
-        Kind::try_from(code).map_or_else(|_e| Self::Unknown(code), |inner| Self::Known(inner))
+        Kind::try_from(code).map_or_else(|_e| Self::Unknown(code), Self::Known)
     }
 }
 

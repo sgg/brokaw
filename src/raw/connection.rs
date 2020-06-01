@@ -1,6 +1,6 @@
 use std::io;
 use std::io::{ErrorKind, Write};
-use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
+use std::net::{TcpStream, ToSocketAddrs};
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -88,7 +88,6 @@ impl TlsConfig {
 /// ```
 pub struct NntpConnection {
     stream: io::BufReader<NntpStream>,
-    addrs: Vec<SocketAddr>,
     tls_config: Option<TlsConfig>,
     first_line_buffer: Vec<u8>,
 }
@@ -101,11 +100,9 @@ impl NntpConnection {
         read_timeout: Option<Duration>,
     ) -> Result<(Self, RawResponse)> {
         trace!("Opening TcpStream...");
-        let tcp_stream = {
-            let mut stream = TcpStream::connect(&addr)?;
-            stream.set_read_timeout(read_timeout);
-            stream
-        };
+        let tcp_stream = TcpStream::connect(&addr)?;
+
+        tcp_stream.set_read_timeout(read_timeout)?;
 
         let nntp_stream = if let Some(TlsConfig { connector, domain }) = tls_config.as_ref() {
             trace!("Wrapping TcpStream w/ TlsConnector");
@@ -119,7 +116,6 @@ impl NntpConnection {
 
         let mut conn = Self {
             stream: io::BufReader::new(nntp_stream),
-            addrs: addr.to_socket_addrs()?.collect(),
             tls_config,
             first_line_buffer: Vec::with_capacity(128),
         };
@@ -190,7 +186,7 @@ impl NntpConnection {
                 );
                 None
             }
-            ResponseCode::Unknown(code) => None,
+            ResponseCode::Unknown(_) => None,
         };
 
         Ok(RawResponse {
@@ -210,6 +206,11 @@ impl NntpConnection {
     /// This can be useful if you want to handle response parsing and/or control buffering
     pub fn stream_mut(&mut self) -> &mut io::BufReader<NntpStream> {
         &mut self.stream
+    }
+
+    /// Get the TLS configuration of the connection
+    pub fn tls_config(&self) -> Option<&TlsConfig> {
+        self.tls_config.as_ref()
     }
 }
 

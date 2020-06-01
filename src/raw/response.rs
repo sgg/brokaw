@@ -1,9 +1,7 @@
-use std::convert::{TryFrom};
 use std::str::{from_utf8, from_utf8_unchecked};
 use std::borrow::Cow;
 
 use crate::types::response_code::ResponseCode;
-
 
 /// A response returned by the low-level [`NntpConnection`](super::connection::NntpConnection)
 ///
@@ -58,8 +56,11 @@ impl RawResponse {
 
     /// Convert the initial response payload into UTF-8 without checking
     ///
-    /// MOST news servers return the initial response line as UTF-8, however there are
-    /// no guarantees so this is unsafe
+    /// # Safety
+    ///
+    /// This function is unsafe because NNTP responses are NOT required to be UTF-8.
+    /// This call simply calls [`from_utf8_unchecked`] under the hood.
+    ///
     pub unsafe fn first_line_as_utf8_unchecked(&self) -> &str {
         from_utf8_unchecked(&self.first_line)
     }
@@ -95,6 +96,8 @@ impl DataBlocks {
     pub fn len(&self) -> usize {
         self.line_boundaries.len()
     }
+
+    pub fn is_empty(&self) -> bool { self.line_boundaries.is_empty() }
 }
 
 pub struct Iter<'a> {

@@ -1,8 +1,5 @@
-use std::convert::{TryFrom, TryInto};
-use std::io;
-use std::io::ErrorKind;
+use std::convert::TryFrom;
 use std::net::ToSocketAddrs;
-use std::str::FromStr;
 use std::time::Duration;
 
 use log::*;
@@ -23,13 +20,17 @@ pub struct NntpClient {
 }
 
 impl NntpClient {
-    pub fn get_group(&self) -> Option<&Group> {
+    pub fn config(&self) -> &ClientConfig {
+        &self.config
+    }
+    pub fn group(&self) -> Option<&Group> {
         self.group.as_ref()
     }
 
-    pub fn get_capabilities(&self) -> &Capabilities {
+    pub fn capabilities(&self) -> &Capabilities {
         &self.capabilities
     }
+
     pub fn close(&mut self) -> Result<()> {
         let resp = self.conn.command(&cmd::Quit)?;
 
@@ -54,7 +55,6 @@ pub struct ClientConfig {
     group: Option<String>,
     read_timeout: Option<Duration>,
 }
-
 impl ClientConfig {
     pub fn new() -> Self {
         ClientConfig {
@@ -99,7 +99,12 @@ impl ClientConfig {
         let (mut conn, conn_response) =
             NntpConnection::connect(addr, self.tls_config.clone(), self.read_timeout)?;
 
-        /// FIXME(ux) check capabilities before attempting auth info
+        debug!(
+            "Connected. Server returned `{}`",
+            conn_response.first_line_to_utf8_lossy()
+        );
+
+        // FIXME(correctness) check capabilities before attempting auth info
         if let Some((username, password)) = &self.authinfo {
             if self.tls_config.is_none() {
                 warn!("TLS is not enabled, credentials will be sent in the clear!");
@@ -125,6 +130,17 @@ impl ClientConfig {
             capabilities,
             group,
         })
+    }
+}
+
+impl Default for ClientConfig {
+    fn default() -> Self {
+        Self {
+            tls_config: None,
+            authinfo: None,
+            group: None,
+            read_timeout: None,
+        }
     }
 }
 
@@ -176,12 +192,10 @@ fn select_group(conn: &mut NntpConnection, group: impl AsRef<str>) -> Result<Gro
     match resp.code() {
         ResponseCode::Known(Kind::GroupSelected) => Group::try_from(&resp),
         ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
-        code => Err(
-            Error::BadResponse {
-                code,
-                msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),
-                resp,
-            }
-        ),
+        code => Err(Error::BadResponse {
+            code,
+            msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),
+            resp,
+        }),
     }
 }

@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 /// A response from an NNTP server
 #[derive(Clone)]
-struct Response<B>
+pub struct Response<B>
 where
     B: Clone + NntpResponseBody,
 {
@@ -17,12 +17,13 @@ where
 }
 
 impl<B: Clone + NntpResponseBody> Response<B> {
-    fn body(&self) -> &B {
+    /// The body of the response
+    pub fn body(&self) -> &B {
         &self.body
     }
 }
 
-trait NntpResponseBody: for<'a> TryFrom<&'a RawResponse, Error=Error> {}
+pub trait NntpResponseBody: for<'a> TryFrom<&'a RawResponse, Error=Error> {}
 
 /// Response to the `GROUP` command
 #[derive(Clone, Debug)]
@@ -59,7 +60,7 @@ impl TryFrom<&RawResponse> for Group {
         let mut iter = lossy.split_whitespace();
 
         // pop the response code
-        iter.next().ok_or(Error::missing_field("response code"))?;
+        iter.next().ok_or_else(|| Error::missing_field("response code"))?;
 
         let number = parse_field(&mut iter, "number")?;
         let low = parse_field(&mut iter, "low")?;
@@ -78,7 +79,7 @@ impl TryFrom<&RawResponse> for Group {
 pub struct Capabilities(HashMap<String, Option<Vec<String>>>);
 
 impl Capabilities {
-    fn iter(&self) -> hash_map::Iter<String, Option<Vec<String>>> {
+    pub fn iter(&self) -> hash_map::Iter<String, Option<Vec<String>>> {
         self.0.iter()
     }
 }
@@ -108,7 +109,7 @@ impl TryFrom<&RawResponse> for Capabilities {
                     }
                 })?;
 
-                let args = if let Some(_) = entry_iter.peek() {
+                let args = if entry_iter.peek().is_some() {
                     Some(entry_iter.map(ToString::to_string).collect::<Vec<_>>())
                 } else {
                     None
@@ -125,7 +126,7 @@ fn parse_field<'a, T: FromStr>(iter: &mut impl Iterator<Item=&'a str>, name: imp
     let name = name.as_ref();
     iter
         .next()
-        .ok_or(Error::missing_field(name))
+        .ok_or_else(|| Error::missing_field(name))
         .and_then(|s| s.parse().map_err(|_| Error::parse_error(name)))
 }
 

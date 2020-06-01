@@ -1,6 +1,4 @@
-
-use std::{fmt};
-use nom::lib::std::fmt::Formatter;
+use std::fmt;
 
 /// An NNTP command
 ///

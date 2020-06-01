@@ -47,9 +47,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = config.connect((address.as_str(), port))?;
 
     info!("Connected!");
-    info!("Capabilities: {:#?}", client.get_capabilities());
+    info!("Capabilities: {:#?}", client.capabilities());
 
-    info!("Group info: {:?}", client.get_group());
+    info!("Group info: {:?}", client.group());
 
     info!("Closing connection...");
     client.close()?;
