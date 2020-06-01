@@ -18,6 +18,7 @@ This project is still in early development and provides are **no guarantees abou
 
 ### Unfinished
 * Header/article retrieval within the `NntpClient`
+* Remaining RFC 3997 commands sans LISTGROUP
 * Documentation and Examples
 * Tests and testing infra
 * Some kinks in the parsing logic w/ line terminators
