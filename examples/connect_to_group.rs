@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         address,
         port,
         group,
-        no_tls,
+        no_tls: _,
         username,
     } = Opt::from_args();
 

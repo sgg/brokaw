@@ -101,7 +101,7 @@ mod tests {
 
         #[test]
         fn happy_path() {
-            let (remainder, raw_response) = parse_first_line(MOTD).unwrap();
+            let (_remainder, raw_response) = parse_first_line(MOTD).unwrap();
             let expected_resp = InitialResponseLine {
                 code: b"200",
                 data: &b"news.example.com InterNetNews server INN 2.5.5 ready (transit mode)"[..],
@@ -133,7 +133,7 @@ mod tests {
         #[test]
         fn happy_path() {
             let msg = b"101 Capability list:\r\n";
-            let (remainder, block) = parse_data_block_line(msg).unwrap();
+            let (_remainder, block) = parse_data_block_line(msg).unwrap();
             assert_eq!(block, b"101 Capability list:")
         }
     }
@@ -155,7 +155,7 @@ mod tests {
             .for_each(|input| {
                 let res = take_response_code(input);
                 assert!(res.is_ok());
-                let (rest, code) = res.unwrap();
+                let (_rest, code) = res.unwrap();
                 assert_eq!(code, b"200")
             });
         }

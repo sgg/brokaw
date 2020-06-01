@@ -1,3 +1,5 @@
+// FIXME(examples) fix this example
+
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
@@ -109,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match cmd.clone() {
         Cmd::Xover { low, high, out } => {
             run_cmd(&mut conn, Group(group.clone()), true);
-            let overview = run_cmd(&mut conn, XOver::Range { low, high }, false)?;
+            let _overview = run_cmd(&mut conn, XOver::Range { low, high }, false)?;
             info!("XOVER COMPLETE");
             if let Some(path) = out {
                 info!("Writing overviews to file `{}`", path.display());
