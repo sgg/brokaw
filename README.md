@@ -1,8 +1,10 @@
 # Brokaw 📰 
 
-Brokaw is a modern Usenet library for the modern Usenet user (There are dozens of us! Dozens!).
+Brokaw is a modern Usenet library for the modern Usenet user (there are dozens of us! Dozens!).
 
-This project is still in early development and provides are **no guarantees about stability**.
+This project is still in early development and provides **no guarantees about stability**.
+
+Brokaw aims to mostly implement [RFC 3977](https://tools.ietf.org/html/rfc3977) and several popular extensions.
 
 ## Getting Started (TODO)
 
@@ -10,17 +12,23 @@ This project is still in early development and provides are **no guarantees abou
 
 ## Features
 
-* TLS courtesy of [`native-tls`](https://crates.io/crates/native-tls)
+* TLS (aka. NNTPS) courtesy of [`native-tls`](https://crates.io/crates/native-tls)
 * A high-level client API (`NntpClient`) for simple interactions with news servers
 * A low-level connection API (`NntpConnection`) for more specialized use cases
+* `AUTHINFO USER/PASS` Authentication ([RFC 4643]
+* ~All~ Most commands in [RFC 3977] (`POST`, `NEWGROUP`, `NEWNEWS`, and `LISTGROUP` have yet to be implemented)
 
 ## Development Progress
 
 ### Unfinished
-* Header/article retrieval within the `NntpClient`
-* Remaining RFC 3997 commands sans LISTGROUP
+
 * Documentation and Examples
-* Tests and testing infra
+* NntpClient
+    * Header/article retrieval
+    * First class capabilities support
+* Craftsmanship
+    * Tests and testing infra
+    * Much of the `commands` module could be replaced w/ some proc macros
 * Some kinks in the parsing logic w/ line terminators
 
 ## Missing Features
@@ -28,11 +36,18 @@ This project is still in early development and provides are **no guarantees abou
 * Compression (RFC 8054, Astraweb, Giganews, etc)
 * STARTTLS ([RFC 4642](https://tools.ietf.org/html/rfc4642))
 * SASL Authentication ([RFC 4643](https://tools.ietf.org/html/rfc4643))
-* Connection pools
-* Connection tuning
-* Async client
+* Most of [RFC 2980]. `XHDR` and `XOVER` are supported
+* Connection pools, connection tuning
+* Async client connections/client
 
 ## Sharp Edges
 
 * The NntpClient does not gracefully handle timeouts
-* `LISTGROUP` is itself a sharp edge in the NNTP standard, it is unimplemented
+* `LISTGROUP` is itself a sharp edge in the NNTP standard...
+
+## Code Quality Issues
+
+[RFC 2980]: (https://tools.ietf.org/html/rfc4643)
+[RFC 3977]: https://tools.ietf.org/html/rfc3977
+[RFC 4642]: https://tools.ietf.org/html/rfc4642
+[RFC 4643]: (https://tools.ietf.org/html/rfc4643)
