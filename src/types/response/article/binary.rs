@@ -64,7 +64,7 @@ impl BinaryArticle {
     pub fn unterminated(&self) -> Unterminated {
         Unterminated {
             article: &self,
-            inner: self.line_boundaries.iter()
+            inner: self.line_boundaries.iter(),
         }
     }
 
@@ -177,7 +177,6 @@ impl TryFrom<&RawResponse> for BinaryArticle {
 
 impl NntpResponseBody for BinaryArticle {}
 
-
 /// Created by [`BinaryArticle::lines`]
 #[derive(Clone, Debug)]
 pub struct Lines<'a> {
@@ -208,6 +207,6 @@ impl<'a> Iterator for Unterminated<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner
             .next()
-            .map(|(start, end)| &self.article.body[*start..*end-2])
+            .map(|(start, end)| &self.article.body[*start..*end - 2])
     }
 }

@@ -21,7 +21,6 @@ native-tls = "0.2.4"
 nom = "5.1"
 num_enum = "0.5.0"
 thiserror = "1.0"
-bstr = "0.2.13"
 
 [dev-dependencies]
 anyhow = "1.0.31"

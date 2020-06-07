@@ -7,8 +7,8 @@ use log::*;
 
 use crate::error::{Error, Result};
 use crate::raw::response::{DataBlocks, RawResponse};
-use crate::types::response_code::{ResponseCode, Kind};
 use crate::types::response_code::Kind::ArticleExists;
+use crate::types::response_code::{Kind, ResponseCode};
 
 mod article;
 
@@ -146,4 +146,3 @@ pub(crate) fn parse_field<'a, T: FromStr>(
         .ok_or_else(|| Error::missing_field(name))
         .and_then(|s| s.parse().map_err(|_| Error::parse_error(name)))
 }
-

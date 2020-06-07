@@ -51,8 +51,6 @@ impl Error {
     pub(crate) fn invalid_data_blocks(msg: impl AsRef<str>) -> Self {
         Error::Deserialization2(format!("Invalid data-block section -- {}", msg.as_ref()))
     }
-
-
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

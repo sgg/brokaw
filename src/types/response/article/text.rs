@@ -1,6 +1,6 @@
 use std::str::Utf8Error;
 
-use crate::types::response::{Headers, BinaryArticle};
+use crate::types::response::{BinaryArticle, Headers};
 
 /// A text Netnews article
 ///

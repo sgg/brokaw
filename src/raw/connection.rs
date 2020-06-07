@@ -54,7 +54,6 @@ impl fmt::Debug for TlsConfig {
     }
 }
 
-
 /// A connection to an NNTP Server
 ///
 /// Please note that NNTP is a STATEFUL protocol and the Connection DOES NOT maintain any information
@@ -179,7 +178,10 @@ impl NntpConnection {
 
         let data_blocks = match resp_code {
             ResponseCode::Known(kind) if kind.is_multiline() => {
-                trace!("Response {} indicates a multiline response, parsing data blocks", kind as u16);
+                trace!(
+                    "Response {} indicates a multiline response, parsing data blocks",
+                    kind as u16
+                );
 
                 // FIXME(perf): Consider preallocating these buffers and allowing users to tune
                 //     them upon connection creation
@@ -280,7 +282,11 @@ pub fn read_data_blocks<S: io::BufRead>(
         read_head += bytes_read;
 
         if is_end_of_datablock(line) {
-            trace!("Read {} bytes of data w/ boundaries {:?}", read_head,  line_boundaries);
+            trace!(
+                "Read {} bytes of data w/ boundaries {:?}",
+                read_head,
+                line_boundaries
+            );
             break;
         }
     }

@@ -6,9 +6,9 @@ use log::*;
 
 use crate::error::{Error, Result};
 use crate::raw::connection::{NntpConnection, TlsConfig};
+use crate::raw::response::RawResponse;
 use crate::types::command as cmd;
 use crate::types::prelude::*;
-use crate::raw::response::RawResponse;
 
 /// A client
 ///
@@ -18,7 +18,7 @@ pub struct NntpClient {
     conn: NntpConnection,
     config: ClientConfig,
     capabilities: Capabilities,
-    group: Option<Group>
+    group: Option<Group>,
 }
 
 impl NntpClient {
@@ -45,7 +45,7 @@ impl NntpClient {
                 let group = Group::try_from(&resp)?;
                 self.group = Some(group.clone());
                 Ok(group)
-            },
+            }
             ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
             code => Err(Error::BadResponse {
                 code,
@@ -62,7 +62,7 @@ impl NntpClient {
     pub fn update_capabilities(&mut self) -> Result<&Capabilities> {
         let resp = self.conn.command(&cmd::Capabilities)?;
         if resp.code() != ResponseCode::Known(Kind::Capabilities) {
-            return Err(Error::bad_response(resp))
+            return Err(Error::bad_response(resp));
         }
         let capabilities = Capabilities::try_from(&resp)?;
 
@@ -106,7 +106,6 @@ impl NntpClient {
             Ok(())
         }
     }
-
 }
 
 // TODO: Derive Debug once https://github.com/sfackler/rust-native-tls/issues/99 is implemented

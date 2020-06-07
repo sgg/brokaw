@@ -149,8 +149,7 @@ pub(crate) fn take_headers(b: &[u8]) -> IResult<&[u8], HashMap<String, Vec<Strin
     let fold_headers = fold_many1(take_header, HashMap::new(), |mut acc, (name, content)| {
         let name = String::from_utf8_lossy(name).to_string();
         let content = String::from_utf8_lossy(content).to_string();
-        let entries: &mut Vec<_> = acc.entry(name)
-            .or_default();
+        let entries: &mut Vec<_> = acc.entry(name).or_default();
         entries.push(content);
 
         acc
