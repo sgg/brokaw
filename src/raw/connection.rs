@@ -15,8 +15,7 @@ use crate::raw::stream::NntpStream;
 use crate::types::command::NntpCommand;
 use crate::types::prelude::*;
 
-// FIXME: Derive Debug once TlsConnector implements Debug
-/// TLS configuration for an NNTP Client/Connection
+/// TLS configuration for an [`NntpConnection`]
 #[derive(Clone)]
 pub struct TlsConfig {
     connector: TlsConnector,
@@ -24,15 +23,17 @@ pub struct TlsConfig {
 }
 
 impl TlsConfig {
-    /// Create a `TlsConfig` for the
+    /// Create a `TlsConfig` for use with [`NntpConnections`]
     ///
-    /// The `domain` will be passed to [`TlsConnector::connect`] for certificate validatoin
-    /// when an `NntpConnection` is created
+    /// The `domain` will be passed to [`TlsConnector::connect`] for certificate validation
+    /// during any TLS handshakes.
     pub fn new(domain: String, connector: TlsConnector) -> Self {
         Self { connector, domain }
     }
 
     /// Create a `TlsConfig` with the system default TLS settings
+    ///
+    /// The `domain` will be used to validate server certs during any TLS handshakes.
     pub fn default_connector(domain: impl AsRef<str>) -> Result<Self> {
         let connector = TlsConnector::new()?;
         Ok(Self {
@@ -41,6 +42,7 @@ impl TlsConfig {
         })
     }
 
+    /// The [`TlsConnector`] associated with the config
     pub fn connector(&self) -> &TlsConnector {
         &self.connector
     }
@@ -86,7 +88,7 @@ impl fmt::Debug for TlsConfig {
 ///     assert_eq!(&resp.code(), &ResponseCode::Known(Kind::Capabilities));
 ///
 ///     let contains_version = data_blocks
-///         .iter()
+///         .lines()
 ///         .map(|line| std::str::from_utf8(line).unwrap())
 ///         .any(|l| l.contains("VERSION"));
 ///

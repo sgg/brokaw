@@ -1,11 +1,10 @@
-use crate::types::response::Headers;
 use nom::branch::alt;
-use nom::bytes::complete as bc;
+
 use nom::bytes::complete::{is_a, take, take_while, take_while1, take_while_m_n};
-use nom::character::complete::{anychar, char, crlf, space0, space1};
-use nom::character::is_alphabetic;
-use nom::combinator::{iterator, map, map_parser, opt, verify};
-use nom::lib::std::str::{from_utf8, Utf8Error};
+use nom::character::complete::{char, crlf, space0, space1};
+
+use nom::combinator::{opt, verify};
+use nom::lib::std::str::from_utf8;
 use nom::multi::{fold_many1, many0};
 use nom::sequence::{terminated, tuple};
 use nom::IResult;
@@ -34,7 +33,7 @@ fn is_utf8_non_ascii(b: &[u8]) -> bool {
 ///
 /// [`A-CHAR`](https://tools.ietf.org/html/rfc3977#section-9.8)
 fn is_a_char(chr: u8) -> bool {
-    (chr >= 0x21 && chr <= 0x7e)
+    chr >= 0x21 && chr <= 0x7e
 }
 
 /// Returns true if the byte slice is a *single* non ASCII non-control char
@@ -117,7 +116,7 @@ fn take_ascii_byte(b: &[u8]) -> IResult<&[u8], &[u8]> {
 /// header-content = [WS] token *( [CRLF] WS token )
 /// ```
 fn take_header_content(b: &[u8]) -> IResult<&[u8], &[u8]> {
-    let (rest, (_ws, token, more_tokens)) = tuple((
+    let (rest, (_ws, _token, _more_tokens)) = tuple((
         opt(space0),
         take_token,
         many0(tuple((opt(crlf), space1, take_token))),
@@ -217,7 +216,7 @@ mod tests {
         use super::*;
         #[test]
         fn happy_path() {
-            let (rest, char) = take_ascii_byte("5".as_bytes()).unwrap();
+            let (_rest, _char) = take_ascii_byte("5".as_bytes()).unwrap();
         }
         #[test]
         fn fail_on_unicode() {
@@ -238,7 +237,7 @@ mod tests {
             b"by 2002:ac8:2aed:: with SMTP id c42mr5587158qta.202.1591290821135;\r\n        \
             Thu, 05 Jun 2020 10:13:41 -0700 (PDT)\r\n";
 
-        let (rest, parsed_header) = take_header_content(&content[..]).unwrap();
+        let (_rest, parsed_header) = take_header_content(&content[..]).unwrap();
 
         // header-content does include the final CRLF, that's part of the header
         assert_eq!(&content[..content.len() - 2], parsed_header)

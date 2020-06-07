@@ -3,7 +3,7 @@ use std::convert::TryInto;
 use nom::bytes::complete::take_until;
 use nom::character::complete::{crlf, one_of};
 use nom::combinator::all_consuming;
-use nom::sequence::tuple;
+use nom::sequence::{terminated, tuple};
 use nom::IResult;
 
 /// The first line of an NNTP response
@@ -28,8 +28,7 @@ fn one_of_digit(b: &[u8]) -> IResult<&[u8], char> {
 ///
 /// A "line" is a sequence of bytes terminated by a CRLF (`\r\n`) sequence.
 fn take_line(b: &[u8]) -> IResult<&[u8], &[u8]> {
-    // FIXME(correct): it's weird that we just drop the CRLF, it should be included in the line
-    let (rest, (line, _crlf)) = tuple((take_until("\r\n"), crlf))(b)?;
+    let (rest, line) = terminated(take_until("\r\n"), crlf)(b)?;
 
     Ok((rest, line))
 }
@@ -55,7 +54,7 @@ pub(crate) fn is_end_of_datablock(b: &[u8]) -> bool {
 /// Per [RFC 3977](https://tools.ietf.org/html/rfc3977#section-3.2), the first line of an
 /// NNTP response consists of a three-digit response code, a single space, and then
 /// some text terminated with a CRLF.
-pub(crate) fn parse_first_line(b: &[u8]) -> IResult<&[u8], InitialResponseLine> {
+pub(crate) fn parse_first_line(b: &[u8]) -> IResult<&[u8], InitialResponseLine<'_>> {
     let res = all_consuming(tuple((
         take_response_code,
         nom::character::complete::char(' '),

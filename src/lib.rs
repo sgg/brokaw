@@ -1,4 +1,8 @@
-/// TODO(docs)
+#![deny(missing_copy_implementations, missing_docs, rust_2018_idioms)]
+
+//! Brokaw
+
+#[allow(missing_docs)] // FIXME(docs)
 pub mod client;
 
 /// Error and Result types returned by the Brokaw client API

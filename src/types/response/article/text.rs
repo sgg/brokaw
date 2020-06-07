@@ -4,9 +4,13 @@ use crate::types::response::{BinaryArticle, Headers};
 
 /// A text Netnews article
 ///
-/// The ext articles must be UTF-8
+/// Unlike [`BinaryArticle`] a `TextArticle` must have a UTF-8 body.
 ///
+/// The following methods can be used to convert from a [`BinaryArticle`]
 ///
+/// * [`from_binary`](`Self::from_binary`) is fallible as it performs UTF-8 checks
+/// * [`from_binary_lossy`](Self::from_binary_lossy) is infallible but will replace
+/// non UTF-8 characters with placeholders
 #[derive(Clone, Debug)]
 pub struct TextArticle {
     pub(crate) headers: Headers,
@@ -19,7 +23,7 @@ impl TextArticle {
         self.headers()
     }
 
-    /// Create a text article from a binary one
+    /// Create a text article from a
     pub fn from_binary(b: &BinaryArticle) -> std::result::Result<Self, Utf8Error> {
         b.to_text()
     }
@@ -33,7 +37,7 @@ impl TextArticle {
     /// An iterator over the lines in the body of the article
     ///
     /// Each line _will not_ include the CRLF terminator
-    pub fn lines(&self) -> Lines {
+    pub fn lines(&self) -> Lines<'_> {
         Lines(self.body.iter())
     }
 }

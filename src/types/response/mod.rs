@@ -1,14 +1,11 @@
-use std::borrow::Cow;
 use std::collections::{hash_map, HashMap};
 use std::convert::TryFrom;
 use std::str::FromStr;
 
-use log::*;
-
 use crate::error::{Error, Result};
 use crate::raw::response::{DataBlocks, RawResponse};
-use crate::types::response_code::Kind::ArticleExists;
-use crate::types::response_code::{Kind, ResponseCode};
+
+use crate::types::response_code::ResponseCode;
 
 mod article;
 
@@ -31,14 +28,19 @@ impl<B: Clone + NntpResponseBody> Response<B> {
     }
 }
 
+/// A type that may be deserialized from a [`RawResponse`]
 pub trait NntpResponseBody: for<'a> TryFrom<&'a RawResponse, Error = Error> {}
 
-/// Response to the `GROUP` command
+/// Response to the [`GROUP`](https://tools.ietf.org/html/rfc3977#section-6.1.1) command
 #[derive(Clone, Debug)]
 pub struct Group {
+    /// The _estimated_ number of articles in the group
     pub number: u32,
+    /// The lowest reported article number
     pub low: u32,
+    /// The highest reported article number
     pub high: u32,
+    /// The name of the group
     pub name: String,
 }
 
@@ -84,11 +86,14 @@ impl TryFrom<&RawResponse> for Group {
     }
 }
 
+/// Server capabilities
 #[derive(Clone, Debug)]
-pub struct Capabilities(HashMap<String, Option<Vec<String>>>);
+pub struct Capabilities(pub HashMap<String, Option<Vec<String>>>);
 
+// FIXME(craft): newtype (or deprecate) Capabilities iterator
 impl Capabilities {
-    pub fn iter(&self) -> hash_map::Iter<String, Option<Vec<String>>> {
+    /// An iterator over the capabilities
+    pub fn iter(&self) -> hash_map::Iter<'_, String, Option<Vec<String>>> {
         self.0.iter()
     }
 }
@@ -106,17 +111,16 @@ impl TryFrom<&RawResponse> for Capabilities {
             .data_blocks
             .as_ref()
             .ok_or_else(|| Error::de("Missing data blocks."))
-            .map(DataBlocks::iter)?;
+            .map(DataBlocks::lines)?;
 
         let capabilities: HashMap<String, Option<Vec<String>>> = db_iter
             .map(String::from_utf8_lossy)
             .map(|entry| {
                 let mut entry_iter = entry.split_whitespace().peekable();
-                let label = entry_iter.next().map(ToString::to_string).ok_or_else(|| {
-                    Error::Deserialization {
-                        msg: "Entry does not have a label".to_string(),
-                    }
-                })?;
+                let label = entry_iter
+                    .next()
+                    .map(ToString::to_string)
+                    .ok_or_else(|| Error::de("Entry does not have a label"))?;
 
                 let args = if entry_iter.peek().is_some() {
                     Some(entry_iter.map(ToString::to_string).collect::<Vec<_>>())

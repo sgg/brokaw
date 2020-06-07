@@ -9,14 +9,17 @@
 /// One notable exception is the [`LISTGROUP`](https://tools.ietf.org/html/rfc3977#section-6.1.2)
 /// command. This command is left unimplemented as it does not adhere to the response standards
 /// defined in the RFC.
+#[allow(missing_docs)] // FIXME(docs)
 pub mod command;
 
 /// Typed NNTP Responses for individual commands
 pub mod response;
 
 /// NNTP Response codes
+#[allow(missing_docs)] // FIXME(docs)
 pub mod response_code;
 
+/// Re-exports of common traits and types
 pub mod prelude {
     pub use super::response_code::*;
 

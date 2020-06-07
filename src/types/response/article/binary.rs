@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt;
 use std::result::Result as StdResult;
@@ -53,7 +52,7 @@ impl BinaryArticle {
     }
 
     /// An iterator over the lines in the body of the article
-    pub fn lines(&self) -> Lines {
+    pub fn lines(&self) -> Lines<'_> {
         Lines {
             article: &self,
             inner: self.line_boundaries.iter(),
@@ -61,7 +60,7 @@ impl BinaryArticle {
     }
 
     /// An iterator over the lines of the body without the CRLF terminators
-    pub fn unterminated(&self) -> Unterminated {
+    pub fn unterminated(&self) -> Unterminated<'_> {
         Unterminated {
             article: &self,
             inner: self.line_boundaries.iter(),
@@ -126,7 +125,7 @@ impl TryFrom<&RawResponse> for BinaryArticle {
                 // FIXME(craft): Defense in depth; introduce generic response code checking as part of
                 //  NntpResponseBody rather than relying on this code path only being hit when the code
                 //  is right.
-                return Err(Error::Deserialization2(format!(
+                return Err(Error::Deserialization(format!(
                     "Invalid response code {}",
                     resp.code()
                 )));
@@ -163,7 +162,7 @@ impl TryFrom<&RawResponse> for BinaryArticle {
         let line_boundaries = data_blocks
             .line_boundaries
             .iter()
-            .skip_while(|(start, end)| start < &bytes_read)
+            .skip_while(|(start, _end)| start < &bytes_read)
             .map(|(start, end)| (start - bytes_read, end - bytes_read))
             .collect::<Vec<_>>();
 

@@ -6,7 +6,7 @@ use log::*;
 
 use crate::error::{Error, Result};
 use crate::raw::connection::{NntpConnection, TlsConfig};
-use crate::raw::response::RawResponse;
+
 use crate::types::command as cmd;
 use crate::types::prelude::*;
 
@@ -47,7 +47,7 @@ impl NntpClient {
                 Ok(group)
             }
             ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
-            code => Err(Error::BadResponse {
+            code => Err(Error::Failure {
                 code,
                 msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),
                 resp,
@@ -77,16 +77,16 @@ impl NntpClient {
     ///
     /// * This client does not properly implement "header folding" for text
     /// * Netnews articles containing non-utf8 characters MUST be binary
-    fn article(&mut self, article: cmd::Article) -> Result<()> {
+    fn article(&mut self, _article: cmd::Article) -> Result<()> {
         unimplemented!()
     }
 
-    fn overviews(&mut self, overview: cmd::Over) -> Result<()> {
+    fn overviews(&mut self, _overview: cmd::Over) -> Result<()> {
         // check capabilities for over and xover
         unimplemented!()
     }
 
-    fn list(&mut self, list: cmd::List) -> Result<()> {
+    fn list(&mut self, _list: cmd::List) -> Result<()> {
         unimplemented!()
     }
 
@@ -95,7 +95,7 @@ impl NntpClient {
         let resp = self.conn.command(&cmd::Quit)?;
 
         if resp.code != ResponseCode::Known(Kind::ConnectionClosing) {
-            Err(Error::BadResponse {
+            Err(Error::Failure {
                 code: resp.code,
                 resp,
                 msg: Some("Failed to close connection".to_string()),
@@ -217,7 +217,7 @@ fn authenticate(
     let user_resp = conn.command(&cmd::AuthInfo::User(username.as_ref().to_string()))?;
 
     if user_resp.code != ResponseCode::from(381) {
-        return Err(Error::BadResponse {
+        return Err(Error::Failure {
             code: user_resp.code,
             resp: user_resp,
             msg: Some("AUTHINFO USER failed".to_string()),
@@ -228,7 +228,7 @@ fn authenticate(
     let pass_resp = conn.command(&cmd::AuthInfo::Pass(password.as_ref().to_string()))?;
 
     if pass_resp.code() != ResponseCode::Known(Kind::AuthenticationAccepted) {
-        return Err(Error::BadResponse {
+        return Err(Error::Failure {
             code: pass_resp.code,
             resp: pass_resp,
             msg: Some("AUTHINFO PASS failed".to_string()),
@@ -255,7 +255,7 @@ fn select_group(conn: &mut NntpConnection, group: impl AsRef<str>) -> Result<Gro
     match resp.code() {
         ResponseCode::Known(Kind::GroupSelected) => Group::try_from(&resp),
         ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
-        code => Err(Error::BadResponse {
+        code => Err(Error::Failure {
             code,
             msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),
             resp,

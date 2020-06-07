@@ -38,19 +38,19 @@ impl RawResponse {
         &self.first_line
     }
 
-    // Return the first line of the response without the response code
+    /// Return the first line of the response without the response code
     pub fn first_line_without_code(&self) -> &[u8] {
         // n.b. this should be infallible barring bugs in the response parsing layer
         &self.first_line[4..]
     }
 
-    /// Return the initial response payload as a UTF-8 str
+    /// Return the first line as UTF-8
     pub fn first_line_as_utf8(&self) -> Result<&str, std::str::Utf8Error> {
         from_utf8(&self.first_line).map(|s| s.trim())
     }
 
-    pub fn first_line_to_utf8_lossy(&self) -> Cow<str> {
-        /// FIXME(ux): Consider using bstr for private APIs
+    /// Lossily convert the first line to UTF-8
+    pub fn first_line_to_utf8_lossy(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(&self.first_line)
     }
 
@@ -66,11 +66,11 @@ impl RawResponse {
     }
 }
 
-/// The multi-line data block portion of an NNTP response
+/// The [Multi-line Data Blocks](https://tools.ietf.org/html/rfc3977#section-3.1.1)
+/// portion of an NNTP response
 ///
-/// [`DataBlocks::iter`] can be used to create iterators over the blocks
-///
-/// https://tools.ietf.org/html/rfc3977#section-3.1.1
+/// * [`DataBlocks::iter`] returns an iterator over the lines within the block
+/// * [`DataBlocks::payload`] returns the raw bytes
 #[derive(Clone, Debug)]
 pub struct DataBlocks {
     pub(crate) payload: Vec<u8>,
@@ -78,16 +78,19 @@ pub struct DataBlocks {
 }
 
 impl DataBlocks {
+    /// Return the raw contained by the payload of the Datablocks
     pub fn payload(&self) -> &[u8] {
         &self.payload
     }
 
+    /// A convenience function that simply calls [`from_utf8`]
     pub fn payload_as_utf8(&self) -> Result<&str, std::str::Utf8Error> {
         from_utf8(&self.payload)
     }
 
-    pub fn iter(&self) -> Iter {
-        Iter {
+    /// An iterator over the lines within the data block
+    pub fn lines(&self) -> Lines<'_> {
+        Lines {
             data_blocks: self,
             inner: self.line_boundaries.iter(),
         }
@@ -95,22 +98,29 @@ impl DataBlocks {
 
     // FIXME(ux): Consider introducing an iterator that does not include CRLF terminators
 
-    pub fn len(&self) -> usize {
+    /// The number of lines
+    pub fn lines_len(&self) -> usize {
         self.line_boundaries.len()
     }
 
+    /// The number of bytes in the data block
+    pub fn payload_len(&self) -> usize {
+        self.payload.len()
+    }
+
+    /// Returns true if there are no lines
     pub fn is_empty(&self) -> bool {
         self.line_boundaries.is_empty()
     }
 }
 
 /// An iterator over the data blocks within a response
-pub struct Iter<'a> {
+pub struct Lines<'a> {
     data_blocks: &'a DataBlocks,
     inner: std::slice::Iter<'a, (usize, usize)>,
 }
 
-impl<'a> Iterator for Iter<'a> {
+impl<'a> Iterator for Lines<'a> {
     type Item = &'a [u8];
 
     fn next(&mut self) -> Option<Self::Item> {
