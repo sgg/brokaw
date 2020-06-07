@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io;
 use std::io::{ErrorKind, Write};
 use std::net::{TcpStream, ToSocketAddrs};
@@ -14,7 +15,7 @@ use crate::raw::stream::NntpStream;
 use crate::types::command::NntpCommand;
 use crate::types::prelude::*;
 
-// FIXME(ux): Make this Debug once TlsConnector implements Debug
+// FIXME: Derive Debug once TlsConnector implements Debug
 /// TLS configuration for an NNTP Client/Connection
 #[derive(Clone)]
 pub struct TlsConfig {
@@ -45,7 +46,15 @@ impl TlsConfig {
     }
 }
 
-// FIXME(ux): Make this Debug once TlsConnector implements Debug
+impl fmt::Debug for TlsConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TlsConfig")
+            .field("domain", &self.domain)
+            .finish()
+    }
+}
+
+
 /// A connection to an NNTP Server
 ///
 /// Please note that NNTP is a STATEFUL protocol and the Connection DOES NOT maintain any information
@@ -86,6 +95,7 @@ impl TlsConfig {
 ///     Ok(())
 /// }
 /// ```
+#[derive(Debug)]
 pub struct NntpConnection {
     stream: io::BufReader<NntpStream>,
     tls_config: Option<TlsConfig>,
@@ -149,7 +159,7 @@ impl NntpConnection {
     /// (e.g. `LISTGROUP misc.test 3000238-3000248`)
     ///
     /// * The caller is responsible for reading the response
-    /// * The command SHOULD NOT include the CLRF terminator
+    /// * The command SHOULD NOT include the CRLF terminator
     pub fn send_bytes(&mut self, command: impl AsRef<[u8]>) -> Result<usize> {
         let writer = self.stream.get_mut();
         // Write the command and terminal char
@@ -169,6 +179,10 @@ impl NntpConnection {
 
         let data_blocks = match resp_code {
             ResponseCode::Known(kind) if kind.is_multiline() => {
+                trace!("Response {} indicates a multiline response, parsing data blocks", kind as u16);
+
+                // FIXME(perf): Consider preallocating these buffers and allowing users to tune
+                //     them upon connection creation
                 let mut datablocks = Vec::with_capacity(1024);
                 let mut line_boundaries = Vec::with_capacity(10);
                 read_data_blocks(&mut self.stream, &mut datablocks, &mut line_boundaries)?;
@@ -179,7 +193,7 @@ impl NntpConnection {
             }
             ResponseCode::Known(kind) => {
                 trace!(
-                    "Response {} is not multi-line, skipping datablock",
+                    "Response {} is not multi-line, skipping data block parsing",
                     kind as u16
                 );
                 None
@@ -248,24 +262,27 @@ pub fn read_data_blocks<S: io::BufRead>(
     line_boundaries: &mut Vec<(usize, usize)>,
 ) -> Result<()> {
     let mut read_head = 0;
+    trace!("Reading multi-line datablocks...");
 
-    // n.b. - icky imperative style so that we can get 0-copy outside of the reader
+    // n.b. - icky imperative style so that we have zero allocations outside of the reader
     loop {
+        // n.b. - read_until will _append_ data from the current end of the vector
         let bytes_read = stream.read_until(b'\n', buffer)?;
 
-        let (_, line) = parse_data_block_line(&buffer[read_head..])
+        let (_empty, line) = parse_data_block_line(&buffer[read_head..])
             .map_err(|_e| io::Error::new(ErrorKind::InvalidData, ""))?;
-
-        trace!("Read {} bytes from buffer", bytes_read);
-
-        if is_end_of_datablock(line) {
-            break;
-        }
-
         // we keep track of line boundaries rather than slices as borrowck won't allow
         // us to reuse the buffer AND keep track of sub-slices within it
         line_boundaries.push((read_head, read_head + bytes_read));
+
+        // n.b. we use bytes read rather than the length of line so that we don't drop the
+        // terminators
         read_head += bytes_read;
+
+        if is_end_of_datablock(line) {
+            trace!("Read {} bytes of data w/ boundaries {:?}", read_head,  line_boundaries);
+            break;
+        }
     }
 
     Ok(())

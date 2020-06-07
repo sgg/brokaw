@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use std::fmt;
 
 /// An NNTP [Response Code](https://tools.ietf.org/html/rfc3977#section-3.2)
 ///
@@ -56,6 +57,22 @@ impl From<ResponseCode> for u16 {
             ResponseCode::Known(kind) => kind as u16,
             ResponseCode::Unknown(code) => code,
         }
+    }
+}
+
+impl From<&ResponseCode> for u16 {
+    fn from(code: &ResponseCode) -> Self {
+        match *code {
+            ResponseCode::Known(kind) => kind as u16,
+            ResponseCode::Unknown(code) => code,
+        }
+    }
+}
+
+impl fmt::Display for ResponseCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let code: u16 = self.into();
+        write!(f, "{}", code)
     }
 }
 
@@ -140,7 +157,7 @@ impl Kind {
     /// assumes that code 211 DOES NOT correspond to a multi-line response.
     pub fn is_multiline(&self) -> bool {
         match *self as u16 {
-            100..=101 | 215 | 221..=222 | 224..=225 | 230..=231 => true,
+            100..=101 | 215 | 220..=222 | 224..=225 | 230..=231 => true,
             _ => false,
         }
     }

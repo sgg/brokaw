@@ -1,0 +1,46 @@
+200 news.mozilla.org
+211 47660 2 47661 mozilla.dev.platform
+220 47661 <b976e951-174a-4aba-9cd6-628b9b3418dd@googlegroups.com>
+X-Received: by 2002:ac8:2aed:: with SMTP id c42mr5587158qta.202.1591290821135;
+        Thu, 04 Jun 2020 10:13:41 -0700 (PDT)
+X-Received: by 2002:a25:c186:: with SMTP id r128mr10257992ybf.92.1591290820872;
+ Thu, 04 Jun 2020 10:13:40 -0700 (PDT)
+Path: buffer1.nntp.dca1.giganews.com!border2.nntp.dca1.giganews.com!nntp.giganews.com!news-out.google.com!nntp.google.com!postnews.google.com!google-groups.googlegroups.com!not-for-mail
+Newsgroups: mozilla.dev.platform
+Date: Thu, 4 Jun 2020 10:13:40 -0700 (PDT)
+Complaints-To: groups-abuse@google.com
+Injection-Info: google-groups.googlegroups.com; posting-host=2403:5800:7300:6300:3d06:ae8:c1a4:c55;
+ posting-account=B5D9HgoAAADisMxwUaQMp2rcoV8ZGukv
+NNTP-Posting-Host: 2403:5800:7300:6300:3d06:ae8:c1a4:c55
+User-Agent: G2/1.0
+MIME-Version: 1.0
+Message-ID: <b976e951-174a-4aba-9cd6-628b9b3418dd@googlegroups.com>
+Subject: Intent to deprecate: stretching MathML operators with STIXGeneral fonts
+From: dazabani@igalia.com
+Injection-Date: Thu, 04 Jun 2020 17:13:41 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Bytes: 1972
+Lines: 17
+Xref: number.nntp.giganews.com mozilla.dev.platform:47661
+
+In bug 1630935 [1], I intend to deprecate support for drawing
+stretched MathML operators using the STIXGeneral fonts with a use
+counter, deprecation warning, and a pref to gate the feature (off by
+default on nightly).
+
+These fonts were a stopgap solution to a problem that has since been
+addressed by OpenType MATH tables. Now that OpenType MATH fonts are
+available, they=E2=80=99ve been deprecated upstream, and we=E2=80=99ve enco=
+uraged the
+ecosystem to switch since 2014 [2].
+
+That support is now a special case in our codebase, causing
+performance problems and making it difficult to refactor our MathML
+operator stretching code, but we can=E2=80=99t unship without usage data,
+because the fonts are still preinstalled on macOS.
+
+[1] https://bugzilla.mozilla.org/show_bug.cgi?id=3D1630935
+[2] https://groups.google.com/d/topic/mozilla.dev.tech.mathml/PlVCil2X598
+.
+205 goodbye

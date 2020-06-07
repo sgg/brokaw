@@ -50,6 +50,7 @@ impl RawResponse {
     }
 
     pub fn first_line_to_utf8_lossy(&self) -> Cow<str> {
+        /// FIXME(ux): Consider using bstr for private APIs
         String::from_utf8_lossy(&self.first_line)
     }
 
@@ -87,10 +88,12 @@ impl DataBlocks {
 
     pub fn iter(&self) -> Iter {
         Iter {
-            datablocks: self,
+            data_blocks: self,
             inner: self.line_boundaries.iter(),
         }
     }
+
+    // FIXME(ux): Consider introducing an iterator that does not include CRLF terminators
 
     pub fn len(&self) -> usize {
         self.line_boundaries.len()
@@ -101,8 +104,9 @@ impl DataBlocks {
     }
 }
 
+/// An iterator over the data blocks within a response
 pub struct Iter<'a> {
-    datablocks: &'a DataBlocks,
+    data_blocks: &'a DataBlocks,
     inner: std::slice::Iter<'a, (usize, usize)>,
 }
 
@@ -110,8 +114,8 @@ impl<'a> Iterator for Iter<'a> {
     type Item = &'a [u8];
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((low, high)) = self.inner.next() {
-            Some(&self.datablocks.payload[*low..*high])
+        if let Some((start, end)) = self.inner.next() {
+            Some(&self.data_blocks.payload[*start..*end])
         } else {
             None
         }

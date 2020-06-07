@@ -8,29 +8,89 @@ use crate::error::{Error, Result};
 use crate::raw::connection::{NntpConnection, TlsConfig};
 use crate::types::command as cmd;
 use crate::types::prelude::*;
+use crate::raw::response::RawResponse;
 
 /// A client
 ///
 /// Each client represents a single connection
+#[derive(Debug)]
 pub struct NntpClient {
     conn: NntpConnection,
     config: ClientConfig,
     capabilities: Capabilities,
-    group: Option<Group>,
+    group: Option<Group>
 }
 
 impl NntpClient {
+    /// Get the raw [`NntpConnection`] for the client
+    fn conn(&mut self) -> &mut NntpConnection {
+        &mut self.conn
+    }
+
+    /// Get the currently selected group
     pub fn config(&self) -> &ClientConfig {
         &self.config
     }
+
+    /// Get the last selected group
     pub fn group(&self) -> Option<&Group> {
         self.group.as_ref()
+    }
+
+    pub fn set_group(&mut self, name: impl AsRef<str>) -> Result<Group> {
+        let resp = self.conn.command(&cmd::Group(name.as_ref().to_string()))?;
+
+        match resp.code() {
+            ResponseCode::Known(Kind::GroupSelected) => {
+                let group = Group::try_from(&resp)?;
+                self.group = Some(group.clone());
+                Ok(group)
+            },
+            ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
+            code => Err(Error::BadResponse {
+                code,
+                msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),
+                resp,
+            }),
+        }
     }
 
     pub fn capabilities(&self) -> &Capabilities {
         &self.capabilities
     }
 
+    pub fn update_capabilities(&mut self) -> Result<&Capabilities> {
+        let resp = self.conn.command(&cmd::Capabilities)?;
+        if resp.code() != ResponseCode::Known(Kind::Capabilities) {
+            return Err(Error::bad_response(resp))
+        }
+        let capabilities = Capabilities::try_from(&resp)?;
+
+        self.capabilities = capabilities;
+
+        Ok(&self.capabilities)
+    }
+
+    /// FIXME(docs)
+    ///
+    /// # Implementation Notes
+    ///
+    /// * This client does not properly implement "header folding" for text
+    /// * Netnews articles containing non-utf8 characters MUST be binary
+    fn article(&mut self, article: cmd::Article) -> Result<()> {
+        unimplemented!()
+    }
+
+    fn overviews(&mut self, overview: cmd::Over) -> Result<()> {
+        // check capabilities for over and xover
+        unimplemented!()
+    }
+
+    fn list(&mut self, list: cmd::List) -> Result<()> {
+        unimplemented!()
+    }
+
+    /// Close the connection to the server
     pub fn close(&mut self) -> Result<()> {
         let resp = self.conn.command(&cmd::Quit)?;
 
@@ -41,20 +101,24 @@ impl NntpClient {
                 msg: Some("Failed to close connection".to_string()),
             })
         } else {
+            self.group = None;
+            // TODO: return response from server
             Ok(())
         }
     }
+
 }
 
-// TODO: Implement Debug once https://github.com/sfackler/rust-native-tls/issues/99 is implemented
+// TODO: Derive Debug once https://github.com/sfackler/rust-native-tls/issues/99 is implemented
 /// Configuration for an [`NntpClient`]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ClientConfig {
     tls_config: Option<TlsConfig>,
     authinfo: Option<(String, String)>,
     group: Option<String>,
     read_timeout: Option<Duration>,
 }
+
 impl ClientConfig {
     pub fn new() -> Self {
         ClientConfig {

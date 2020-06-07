@@ -42,7 +42,8 @@ use std::fmt;
 /// ```
 pub trait NntpCommand: fmt::Display {}
 
-pub type ArticleNumber = u32;
+/// The number of an article within a news group
+pub type ArticleNumber = u32; // FIXME: replace alias w/ newtype
 
 /// Commands specified in [RFC 3977](https://tools.ietf.org/html/rfc3977#appendix-B)
 mod rfc3977;

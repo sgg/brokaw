@@ -2,9 +2,11 @@ use std::fmt;
 
 use super::NntpCommand;
 
-/// Commands for the AUTHINFO EXTENSION
+/// Authenticate via `AUTHINFO` as specified in [RFC 4643](https://tools.ietf.org/html/rfc4643)
 ///
-/// https://tools.ietf.org/html/rfc4643
+/// # Limitations
+///
+/// * SASL is not currently implemented
 #[derive(Clone, Debug)]
 pub enum AuthInfo {
     User(String),

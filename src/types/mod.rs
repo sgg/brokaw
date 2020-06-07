@@ -3,7 +3,7 @@
 /// The [`NntpCommand`](command::NntpCommand) trait can be used to implement commands not (yet)
 /// provided by Brokaw.
 ///
-/// The brokaw crate provides implementations for many of the commands
+/// Brokaw provides implementations for most of the commands
 /// in [RFC 3977](https://tools.ietf.org/html/rfc3977).
 ///
 /// One notable exception is the [`LISTGROUP`](https://tools.ietf.org/html/rfc3977#section-6.1.2)
