@@ -25,6 +25,7 @@ impl fmt::Display for XHdr {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum XOver {
     Range {
         low: ArticleNumber,

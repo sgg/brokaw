@@ -35,11 +35,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Creating config...");
 
     let config = {
-        let mut config = ClientConfig::new();
+        let mut config = ClientConfig::default();
         config
             .default_tls(address.clone())?
             .authinfo_user_pass(username, password)
-            .group(group);
+            .group(Some(group));
         config
     };
 

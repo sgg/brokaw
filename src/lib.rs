@@ -1,8 +1,16 @@
-#![deny(missing_copy_implementations, missing_docs, rust_2018_idioms)]
+#![deny(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    rust_2018_idioms,
+    unconditional_recursion
+)]
 
-//! Brokaw
+//! TODO(docs) Brokaw
 
-#[allow(missing_docs)] // FIXME(docs)
+/// The high-level client and business logic
+///
+/// TODO(details w/ examples)
 pub mod client;
 
 /// Error and Result types returned by the Brokaw client API

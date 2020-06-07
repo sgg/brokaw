@@ -306,6 +306,7 @@ impl fmt::Display for Post<'_> {
 */
 
 /// Close the connection
+#[derive(Clone, Copy, Debug)]
 pub struct Quit;
 
 impl fmt::Display for Quit {

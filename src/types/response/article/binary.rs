@@ -13,9 +13,9 @@ use crate::types::response::parse_field;
 
 /// A binary Netnews article
 ///
-/// This is typically created by calling [`BinaryArticle::try_from`] with a [`RawResponse`].
+/// A `BinaryArticle` is created by calling `try_from` with a [`RawResponse`].
 ///
-/// For text articles, see [`TextArticle`]
+/// For text articles, consider converting this article into a [`TextArticle`].
 ///
 /// # Implementation Notes
 ///
@@ -27,7 +27,6 @@ use crate::types::response::parse_field;
 /// 3. There are no formatting constraints on the body
 ///
 /// TODO Example
-/// https://tools.ietf.org/html/rfc3977#section-9.7
 #[derive(Clone, Debug)]
 pub struct BinaryArticle {
     pub(crate) headers: Headers,
@@ -70,7 +69,7 @@ impl BinaryArticle {
     /// Convert the article into a [`TextArticle`]
     ///
     /// This will return an error if the body is not valid UTF-8
-    pub fn to_text(&self) -> StdResult<TextArticle, std::str::Utf8Error> {
+    pub fn to_text(&self) -> Result<TextArticle> {
         let headers = self.headers.clone();
 
         let body: Vec<String> = self

@@ -23,7 +23,7 @@ pub struct TlsConfig {
 }
 
 impl TlsConfig {
-    /// Create a `TlsConfig` for use with [`NntpConnections`]
+    /// Create a `TlsConfig` for use with [`NntpConnections`](NntpConnection)
     ///
     /// The `domain` will be passed to [`TlsConnector::connect`] for certificate validation
     /// during any TLS handshakes.

@@ -11,7 +11,7 @@ pub enum Error {
     /// For example, asking for a non-existent group will return
     /// [`NoSuchNewsGroup`](`crate::types::prelude::Kind::NoSuchNewsgroup`) (code 411),
     /// which is not a protocol error.
-    #[error("Server returned {code:?}")]
+    #[error("Server returned {code:?} -- {msg:?}")]
     Failure {
         /// The response code
         code: ResponseCode,
@@ -34,13 +34,22 @@ pub enum Error {
 }
 
 impl Error {
-    pub(crate) fn bad_response(resp: RawResponse) -> Self {
+    pub(crate) fn failure(resp: RawResponse) -> Self {
         Error::Failure {
             code: resp.code(),
             resp,
             msg: None,
         }
     }
+
+    pub(crate) fn failure_msg(resp: RawResponse, msg: impl AsRef<str>) -> Self {
+        Error::Failure {
+            code: resp.code(),
+            resp,
+            msg: Some(msg.as_ref().to_string()),
+        }
+    }
+
     pub(crate) fn de(msg: impl AsRef<str>) -> Self {
         Error::Deserialization(msg.as_ref().to_string())
     }

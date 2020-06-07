@@ -12,7 +12,7 @@ mod article;
 pub use article::*;
 
 /// A response from an NNTP server
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Response<B>
 where
     B: Clone + NntpResponseBody,
@@ -135,12 +135,10 @@ impl TryFrom<&RawResponse> for Capabilities {
     }
 }
 
-/// TODO: Docstring
-/// Parse a generic field from the first line
+/// Parse a generic field from the first line of an NNTP Response
 ///
-/// The field name will be provided in the error raised if the field cannot be parsed.
-///
-/// The iterator provided will be advanced
+/// 1. The provided field name will be used in the error message if parsing fails
+/// 2. This will advance the provided iterator
 pub(crate) fn parse_field<'a, T: FromStr>(
     iter: &mut impl Iterator<Item = &'a str>,
     name: impl AsRef<str>,

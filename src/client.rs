@@ -1,4 +1,5 @@
-use std::convert::TryFrom;
+use std::borrow::Borrow;
+use std::convert::{TryFrom, TryInto};
 use std::net::ToSocketAddrs;
 use std::time::Duration;
 
@@ -7,6 +8,7 @@ use log::*;
 use crate::error::{Error, Result};
 use crate::raw::connection::{NntpConnection, TlsConfig};
 
+use crate::raw::response::RawResponse;
 use crate::types::command as cmd;
 use crate::types::prelude::*;
 
@@ -37,7 +39,8 @@ impl NntpClient {
         self.group.as_ref()
     }
 
-    pub fn set_group(&mut self, name: impl AsRef<str>) -> Result<Group> {
+    /// Select a newsgroup
+    pub fn select_group(&mut self, name: impl AsRef<str>) -> Result<Group> {
         let resp = self.conn.command(&cmd::Group(name.as_ref().to_string()))?;
 
         match resp.code() {
@@ -46,7 +49,7 @@ impl NntpClient {
                 self.group = Some(group.clone());
                 Ok(group)
             }
-            ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
+            ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::failure(resp)),
             code => Err(Error::Failure {
                 code,
                 msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),
@@ -55,15 +58,18 @@ impl NntpClient {
         }
     }
 
+    /// The capabilities cached in the client
     pub fn capabilities(&self) -> &Capabilities {
         &self.capabilities
     }
 
+    /// Retrieve updated capabilities from the server
     pub fn update_capabilities(&mut self) -> Result<&Capabilities> {
-        let resp = self.conn.command(&cmd::Capabilities)?;
-        if resp.code() != ResponseCode::Known(Kind::Capabilities) {
-            return Err(Error::bad_response(resp));
-        }
+        let resp = self
+            .conn
+            .command(&cmd::Capabilities)?
+            .fail_unless(Kind::Capabilities)?;
+
         let capabilities = Capabilities::try_from(&resp)?;
 
         self.capabilities = capabilities;
@@ -71,14 +77,36 @@ impl NntpClient {
         Ok(&self.capabilities)
     }
 
-    /// FIXME(docs)
+    /// Retrieve an article from the server
     ///
-    /// # Implementation Notes
     ///
-    /// * This client does not properly implement "header folding" for text
-    /// * Netnews articles containing non-utf8 characters MUST be binary
-    fn article(&mut self, _article: cmd::Article) -> Result<()> {
-        unimplemented!()
+    /// # Text Articles
+    ///
+    /// Binary articles can be converted to text using the [`to_text`](BinaryArticle::to_text)
+    /// and [`to_text_lossy`](BinaryArticle::to_text) methods. Note that the former is fallible
+    /// as it will validate that the body of the article is UTF-8.
+    ///
+    /// ```
+    /// use brokaw::client::NntpClient;
+    /// use brokaw::error::Result;
+    /// use brokaw::types::prelude::*;
+    /// use brokaw::types::command::Article;
+    ///
+    /// fn checked_conversion(client: &mut NntpClient) -> Result<TextArticle> {
+    ///     client.article(Article::Number(42))
+    ///         .and_then(|b| b.to_text())
+    /// }
+    ///
+    /// fn lossy_conversion(client: &mut NntpClient) -> Result<TextArticle> {
+    ///     client.article(Article::Number(42))
+    ///         .map(|b| b.to_text_lossy())
+    /// }
+    ///
+    /// ```
+    pub fn article(&mut self, article: cmd::Article) -> Result<BinaryArticle> {
+        let resp = self.conn.command(&article)?.fail_unless(Kind::Article)?;
+
+        resp.borrow().try_into()
     }
 
     fn overviews(&mut self, _overview: cmd::Over) -> Result<()> {
@@ -91,24 +119,16 @@ impl NntpClient {
     }
 
     /// Close the connection to the server
-    pub fn close(&mut self) -> Result<()> {
-        let resp = self.conn.command(&cmd::Quit)?;
+    pub fn close(&mut self) -> Result<RawResponse> {
+        let resp = self
+            .conn
+            .command(&cmd::Quit)?
+            .fail_unless(Kind::ConnectionClosing)?;
 
-        if resp.code != ResponseCode::Known(Kind::ConnectionClosing) {
-            Err(Error::Failure {
-                code: resp.code,
-                resp,
-                msg: Some("Failed to close connection".to_string()),
-            })
-        } else {
-            self.group = None;
-            // TODO: return response from server
-            Ok(())
-        }
+        Ok(resp)
     }
 }
 
-// TODO: Derive Debug once https://github.com/sfackler/rust-native-tls/issues/99 is implemented
 /// Configuration for an [`NntpClient`]
 #[derive(Clone, Debug)]
 pub struct ClientConfig {
@@ -119,14 +139,6 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
-    pub fn new() -> Self {
-        ClientConfig {
-            tls_config: None,
-            authinfo: None,
-            group: None,
-            read_timeout: None,
-        }
-    }
     /// Perform an AUTHINFO USER/PASS authentication after connecting to the server
     ///
     /// https://tools.ietf.org/html/rfc4643#section-2.3
@@ -135,27 +147,33 @@ impl ClientConfig {
         self
     }
 
+    /// Change the tls configuration
     pub fn tls_config(&mut self, config: TlsConfig) -> &mut Self {
         self.tls_config = Some(config);
         self
     }
 
+    /// Use the default TLS configuration
     pub fn default_tls(&mut self, domain: String) -> Result<&mut Self> {
         self.tls_config = Some(TlsConfig::default_connector(domain)?);
         Ok(self)
     }
 
-    pub fn group(&mut self, name: String) -> &mut Self {
-        self.group = Some(name);
+    /// Join a group upon connection
+    ///
+    /// If this is set to None then no `GROUP` command will be sent when the client is initialized
+    pub fn group(&mut self, name: Option<String>) -> &mut Self {
+        self.group = name;
         self
     }
 
+    /// The read timeout of the underlying socket
     pub fn read_timeout(&mut self, duration: Option<Duration>) -> &mut Self {
         self.read_timeout = duration;
         self
     }
 
-    // FIXME(ux): Add timeout support
+    // FIXME(ux): Add better timeout support
 
     /// Resolves the configuration into a client
     pub fn connect(&self, addr: impl ToSocketAddrs) -> Result<NntpClient> {
@@ -167,7 +185,7 @@ impl ClientConfig {
             conn_response.first_line_to_utf8_lossy()
         );
 
-        // FIXME(correctness) check capabilities before attempting auth info
+        // FIXME(ux) check capabilities before attempting auth info
         if let Some((username, password)) = &self.authinfo {
             if self.tls_config.is_none() {
                 warn!("TLS is not enabled, credentials will be sent in the clear!");
@@ -203,6 +221,17 @@ impl Default for ClientConfig {
             authinfo: None,
             group: None,
             read_timeout: None,
+        }
+    }
+}
+
+impl RawResponse {
+    /// Converts a response into an error if it does not match the provided status
+    fn fail_unless(self, desired: Kind) -> Result<RawResponse> {
+        if self.code() != ResponseCode::Known(desired) {
+            Err(Error::failure(self))
+        } else {
+            Ok(self)
         }
     }
 }
@@ -243,7 +272,7 @@ fn get_capabilities(conn: &mut NntpConnection) -> Result<Capabilities> {
     let resp = conn.command(&cmd::Capabilities)?;
 
     if resp.code() != ResponseCode::Known(Kind::Capabilities) {
-        Err(Error::bad_response(resp))
+        Err(Error::failure(resp))
     } else {
         Capabilities::try_from(&resp)
     }
@@ -254,7 +283,7 @@ fn select_group(conn: &mut NntpConnection, group: impl AsRef<str>) -> Result<Gro
 
     match resp.code() {
         ResponseCode::Known(Kind::GroupSelected) => Group::try_from(&resp),
-        ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::bad_response(resp)),
+        ResponseCode::Known(Kind::NoSuchNewsgroup) => Err(Error::failure(resp)),
         code => Err(Error::Failure {
             code,
             msg: Some(format!("{}", resp.first_line_to_utf8_lossy())),

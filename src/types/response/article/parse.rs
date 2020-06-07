@@ -205,8 +205,8 @@ mod tests {
     #[test]
     fn test_token() {
         let (rest, token) = take_token("📯1🤘 some words 🐒 ".as_bytes()).unwrap();
-        dbg!(from_utf8(rest));
-        dbg!(from_utf8(token));
+        dbg!(from_utf8(rest).unwrap());
+        dbg!(from_utf8(token).unwrap());
 
         assert_eq!(token, "📯1🤘".as_bytes());
         assert_eq!(rest, " some words 🐒 ".as_bytes())

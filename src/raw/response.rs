@@ -69,8 +69,8 @@ impl RawResponse {
 /// The [Multi-line Data Blocks](https://tools.ietf.org/html/rfc3977#section-3.1.1)
 /// portion of an NNTP response
 ///
-/// * [`DataBlocks::iter`] returns an iterator over the lines within the block
-/// * [`DataBlocks::payload`] returns the raw bytes
+/// * [`DataBlocks::iter`](Self::iter) returns an iterator over the lines within the block
+/// * [`DataBlocks::payload`](Self::payload) returns the raw bytes
 #[derive(Clone, Debug)]
 pub struct DataBlocks {
     pub(crate) payload: Vec<u8>,
@@ -115,6 +115,7 @@ impl DataBlocks {
 }
 
 /// An iterator over the data blocks within a response
+#[derive(Debug)]
 pub struct Lines<'a> {
     data_blocks: &'a DataBlocks,
     inner: std::slice::Iter<'a, (usize, usize)>,

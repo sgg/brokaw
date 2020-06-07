@@ -1,5 +1,4 @@
-use std::str::Utf8Error;
-
+use crate::error::Result;
 use crate::types::response::{BinaryArticle, Headers};
 
 /// A text Netnews article
@@ -20,11 +19,11 @@ pub struct TextArticle {
 impl TextArticle {
     /// The headers on the article
     pub fn headers(&self) -> &Headers {
-        self.headers()
+        &self.headers
     }
 
     /// Create a text article from a
-    pub fn from_binary(b: &BinaryArticle) -> std::result::Result<Self, Utf8Error> {
+    pub fn from_binary(b: &BinaryArticle) -> Result<Self> {
         b.to_text()
     }
 
@@ -43,6 +42,7 @@ impl TextArticle {
 }
 
 /// Created with [`TextArticle::lines`]
+#[derive(Clone, Debug)]
 pub struct Lines<'a>(std::slice::Iter<'a, String>);
 
 impl<'a> Iterator for Lines<'a> {
