@@ -1,12 +1,12 @@
 [package]
 name = "brokaw"
-version = "0.0.1"
+version = "0.0.1-alpha.0"
 description = "A modern Usenet library for the modern Usenet user 📰"
 authors = ["Samani G. Gikandi <samani@gojulas.com>"]
 edition = "2018"
 license = "MIT"
-repository = "https://github.com/sgg/brokaw" # TODO(publish repo)
-documentation = "https://docs.rs/brokaw"        # TODO(publish crate)
+repository = "https://github.com/sgg/brokaw"
+documentation = "https://docs.rs/brokaw"
 readme = "README.md"
 
 keywords = ["nntp", "netnews", "usenet"]
