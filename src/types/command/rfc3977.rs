@@ -225,7 +225,7 @@ impl NntpCommand for List {}
 
 /// Enable reader mode on a mode switching server
 #[derive(Clone, Copy, Debug)]
-struct ModeReader;
+pub struct ModeReader;
 
 impl fmt::Display for ModeReader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -241,7 +241,7 @@ impl NntpCommand for ModeReader {}
 
 /// Attempt to set the current article to the next article number
 #[derive(Clone, Copy, Debug)]
-struct Next;
+pub struct Next;
 
 impl fmt::Display for Next {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

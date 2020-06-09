@@ -28,11 +28,80 @@ impl NntpClient {
     ///
     /// # Usage
     ///
-    /// NNTP is a *STATEFUL PROTOCOL* and misusing the underlying connection may
-    /// mess up the state of the client. For example, manually sending a `GROUP`
-    /// command would leave the client state inconsistant.
+    /// NNTP is a **STATEFUL PROTOCOL** and misusing the underlying connection may mess up the
+    /// state in the client that owns the connection.
+    ///
+    /// For example, manually sending a `GROUP`  command would leave change the group of
+    /// the connection but will not update the NntpClient's internal record.
+    ///
+    /// Caveat emptor!
     pub fn conn(&mut self) -> &mut NntpConnection {
         &mut self.conn
+    }
+
+    /// Send a command
+    ///
+    /// This is useful if you want to use a command you have implemented or one that is not
+    /// provided by a client method
+    ///
+    /// # Example
+    ///
+    /// Say we have a server that uses mode switching for whatever reason. Brokaw implements
+    /// a [`ModeReader`](cmd::ModeReader) command but it does not provide a return type.
+    /// We implement one in the following example
+    /// <details><summary>MOTD</summary>
+    ///
+    /// ```no_run
+    /// use std::convert::{TryFrom, TryInto};
+    /// use brokaw::types::prelude::*;
+    /// use brokaw::types::command as cmd;
+    ///
+    /// struct Motd {
+    ///     posting_allowed: bool,
+    ///     motd: String,
+    /// }
+    ///
+    /// impl TryFrom<RawResponse> for Motd {
+    ///     type Error = String;
+    ///
+    ///     fn try_from(resp: RawResponse) -> Result<Self, Self::Error> {
+    ///         let posting_allowed = match resp.code() {
+    ///             ResponseCode::Known(Kind::PostingAllowed) => true,
+    ///             ResponseCode::Known(Kind::PostingNotPermitted) => false,
+    ///             ResponseCode::Known(Kind::PermanentlyUnavailable) => {
+    ///                 return Err("Server is gone forever".to_string());
+    ///             }
+    ///             ResponseCode::Known(Kind::TemporarilyUnavailable) => {
+    ///                 return Err("Server is down?".to_string());
+    ///             }
+    ///             code => return Err(format!("Unexpected {:?}", code))
+    ///         };
+    ///         let mut motd = String::from_utf8_lossy(resp.first_line_without_code())
+    ///             .to_string();
+    ///
+    ///         Ok(Motd { posting_allowed, motd })
+    ///     }
+    /// }
+    ///
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     use brokaw::client::{NntpClient, ClientConfig};
+    ///     let mut client = ClientConfig::default()
+    ///         .connect(("news.modeswitching.notreal", 119))?;
+    ///
+    ///     let resp: Motd = client.command(cmd::ModeReader, false)?.try_into()?;
+    ///     println!("Motd: {}", resp.motd);
+    ///     Ok(())
+    /// }
+    /// ```
+    /// </details>
+    pub fn command(&mut self, c: impl NntpCommand, force_multiline: bool) -> Result<RawResponse> {
+        let resp = if force_multiline {
+            self.conn.command_multiline(&c)
+        } else {
+            self.conn.command(&c)
+        }?;
+
+        Ok(resp)
     }
 
     /// Get the currently selected group

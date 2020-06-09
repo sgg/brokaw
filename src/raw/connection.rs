@@ -129,7 +129,7 @@ impl NntpConnection {
             first_line_buffer: Vec::with_capacity(128),
         };
 
-        let initial_resp = conn.read_response()?;
+        let initial_resp = conn.read_response(false)?;
 
         Ok((conn, initial_resp))
     }
@@ -142,7 +142,14 @@ impl NntpConnection {
     /// 2. This function *may* allocate depending ont he nature of the response
     pub fn command<C: NntpCommand>(&mut self, command: &C) -> Result<RawResponse> {
         self.send(command)?;
-        let resp = self.read_response()?;
+        let resp = self.read_response(false)?;
+        Ok(resp)
+    }
+
+    /// Send a command and force the client to check for a multiline response
+    pub fn command_multiline<C: NntpCommand>(&mut self, command: &C) -> Result<RawResponse> {
+        self.send(command)?;
+        let resp = self.read_response(true)?;
         Ok(resp)
     }
 
@@ -174,12 +181,12 @@ impl NntpConnection {
     ///
     /// Note that if the response code is not supported then it is the caller's responsibility
     /// to determine whether or not to keep reading data.
-    pub fn read_response(&mut self) -> Result<RawResponse> {
+    pub fn read_response(&mut self, force_multiline: bool) -> Result<RawResponse> {
         self.first_line_buffer.truncate(0);
         let resp_code = read_initial_response(&mut self.stream, &mut self.first_line_buffer)?;
 
         let data_blocks = match resp_code {
-            ResponseCode::Known(kind) if kind.is_multiline() => {
+            ResponseCode::Known(kind) if kind.is_multiline() || force_multiline => {
                 trace!(
                     "Response {} indicates a multiline response, parsing data blocks",
                     kind as u16

@@ -108,7 +108,7 @@ pub enum Kind {
     IHaveSendArticle = 335,
     PostSendArticle = 340,
 
-    ServerNotAvailable = 400,
+    TemporarilyUnavailable = 400,
     WrongMode = 401,
     InternalError = 403,
     NoSuchNewsgroup = 411,
