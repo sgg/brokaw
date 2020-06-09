@@ -1,7 +1,6 @@
 use std::str::Utf8Error;
 
-use crate::raw::response::RawResponse;
-use crate::types::response_code::ResponseCode;
+use crate::types::prelude::*;
 
 /// All of the ways that a failure can occur within Brokaw
 #[derive(Debug, thiserror::Error)]

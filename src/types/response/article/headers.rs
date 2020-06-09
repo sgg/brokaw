@@ -1,12 +1,19 @@
 use std::collections::HashMap;
+use std::convert::TryFrom;
+
+use crate::error::{Error, Result};
+use crate::raw::response::RawResponse;
+use crate::types::prelude::*;
+use crate::types::response::article::parse::take_headers;
+use crate::types::response::util::{err_if_not_kind, process_article_first_line};
 
 /// The headers on an article
 ///
-/// Note that per [RFC 5322](https://tools.ietf.org/html/rfc5322#section-3.6) headers
+/// Note that per [RFC 5322](https://tools.ietf.org/html/rfc5322#section-3.6) header
 /// may be repeated
 ///
 /// [Header Folding](https://tools.ietf.org/html/rfc3977#appendix-A.1)
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Headers(pub HashMap<String, Vec<String>>);
 
 impl Headers {
@@ -19,4 +26,38 @@ impl Headers {
     }
 
     fn iter() {} // TODO(header iterator)
+}
+
+/// The response to a `HEAD` command
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Head {
+    /// The number of the article unique to a particular newsgroup
+    pub number: ArticleNumber,
+    /// The unique message id for the article
+    pub message_id: String,
+    /// The headers for the article
+    pub headers: Headers,
+}
+
+impl TryFrom<&RawResponse> for Head {
+    type Error = Error;
+
+    fn try_from(resp: &RawResponse) -> Result<Self> {
+        err_if_not_kind(resp, Kind::Head)?;
+
+        let (number, message_id) = process_article_first_line(&resp)?;
+
+        let data_blocks = resp
+            .data_blocks
+            .as_ref()
+            .ok_or_else(|| Error::missing_data_blocks())?;
+        let (_, headers) = take_headers(&data_blocks.payload())
+            .map_err(|e| Error::invalid_data_blocks(format!("{}", e)))?;
+
+        Ok(Self {
+            number,
+            message_id,
+            headers: Headers(headers),
+        })
+    }
 }

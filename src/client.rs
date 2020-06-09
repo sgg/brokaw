@@ -109,6 +109,33 @@ impl NntpClient {
         resp.borrow().try_into()
     }
 
+    /// Retrieve the body for an article
+    pub fn body(&mut self, body: cmd::Body) -> Result<Body> {
+        let resp = self.conn.command(&body)?.fail_unless(Kind::Head)?;
+        resp.borrow().try_into()
+    }
+
+    /// Retrieve the headers for an article
+    pub fn head(&mut self, head: cmd::Head) -> Result<Head> {
+        let resp = self.conn.command(&head)?.fail_unless(Kind::Head)?;
+        resp.borrow().try_into()
+    }
+
+    /// Retrieve the status of an article
+    pub fn stat(&mut self, stat: cmd::Stat) -> Result<Option<Stat>> {
+        let resp = self.conn.command(&stat)?;
+        match resp.code() {
+            ResponseCode::Known(Kind::ArticleExists) => {
+                resp.borrow().try_into().map(|stat| Some(stat))
+            }
+            ResponseCode::Known(Kind::NoArticleWithMessageId)
+            | ResponseCode::Known(Kind::InvalidCurrentArticleNumber)
+            | ResponseCode::Known(Kind::NoArticleWithNumber) => Ok(None),
+            _ => Err(Error::failure(resp)),
+        }
+    }
+
+    /*
     fn overviews(&mut self, _overview: cmd::Over) -> Result<()> {
         // check capabilities for over and xover
         unimplemented!()
@@ -117,6 +144,7 @@ impl NntpClient {
     fn list(&mut self, _list: cmd::List) -> Result<()> {
         unimplemented!()
     }
+    */
 
     /// Close the connection to the server
     pub fn close(&mut self) -> Result<RawResponse> {
@@ -225,16 +253,7 @@ impl Default for ClientConfig {
     }
 }
 
-impl RawResponse {
-    /// Converts a response into an error if it does not match the provided status
-    fn fail_unless(self, desired: Kind) -> Result<RawResponse> {
-        if self.code() != ResponseCode::Known(desired) {
-            Err(Error::failure(self))
-        } else {
-            Ok(self)
-        }
-    }
-}
+impl RawResponse {}
 
 /// Perform an AUTHINFO USER/PASS exchange
 fn authenticate(

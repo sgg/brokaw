@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::{ArticleNumber, NntpCommand};
+use crate::types::prelude::{ArticleNumber, NntpCommand};
 
 /// Retrieve an article's header and body
 #[derive(Clone, Debug)]

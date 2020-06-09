@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 use std::str::{from_utf8, from_utf8_unchecked};
 
+use crate::error::Error;
+use crate::types::prelude::Kind;
 use crate::types::response_code::ResponseCode;
 
 /// A response returned by the low-level [`NntpConnection`](super::connection::NntpConnection)
@@ -44,8 +46,18 @@ impl RawResponse {
         &self.first_line[4..]
     }
 
+    /// Converts a response into an error if it does not match the provided status
+    pub(crate) fn fail_unless(self, desired: Kind) -> Result<RawResponse, Error> {
+        if self.code() != ResponseCode::Known(desired) {
+            Err(Error::failure(self))
+        } else {
+            Ok(self)
+        }
+    }
+
     /// Return the first line as UTF-8
     pub fn first_line_as_utf8(&self) -> Result<&str, std::str::Utf8Error> {
+        // TODO: remove this
         from_utf8(&self.first_line).map(|s| s.trim())
     }
 

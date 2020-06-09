@@ -19,11 +19,15 @@ pub mod response;
 #[allow(missing_docs)] // FIXME(docs)
 pub mod response_code;
 
+/// The number of an article within a newsgroup
+pub type ArticleNumber = u32; // FIXME: replace alias w/ newtype
+
 /// Re-exports of common traits and types
 pub mod prelude {
-    pub use super::response_code::*;
-
-    pub use super::response::*;
+    pub use crate::raw::response::{DataBlocks, RawResponse};
 
     pub use super::command::NntpCommand;
+    pub use super::response::*;
+    pub use super::response_code::*;
+    pub use super::ArticleNumber;
 }

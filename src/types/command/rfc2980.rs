@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::{ArticleNumber, NntpCommand};
+use crate::types::prelude::{ArticleNumber, NntpCommand};
 
 /// Retrieve a specific header from one or more articles
 #[derive(Clone, Debug)]

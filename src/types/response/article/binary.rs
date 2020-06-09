@@ -6,10 +6,10 @@ use std::str::from_utf8;
 use log::*;
 
 use crate::error::{Error, Result};
-use crate::raw::response::RawResponse;
 use crate::types::prelude::*;
+use crate::types::response::article::iter::{Lines, Unterminated};
 use crate::types::response::article::parse::take_headers;
-use crate::types::response::parse_field;
+use crate::types::response::util::{err_if_not_kind, process_article_first_line};
 
 /// A binary Netnews article
 ///
@@ -27,8 +27,10 @@ use crate::types::response::parse_field;
 /// 3. There are no formatting constraints on the body
 ///
 /// TODO Example
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BinaryArticle {
+    pub(crate) number: ArticleNumber,
+    pub(crate) message_id: String,
     pub(crate) headers: Headers,
     pub(crate) body: Vec<u8>,
     pub(crate) line_boundaries: Vec<(usize, usize)>,
@@ -53,7 +55,7 @@ impl BinaryArticle {
     /// An iterator over the lines in the body of the article
     pub fn lines(&self) -> Lines<'_> {
         Lines {
-            article: &self,
+            payload: &self.body,
             inner: self.line_boundaries.iter(),
         }
     }
@@ -61,8 +63,7 @@ impl BinaryArticle {
     /// An iterator over the lines of the body without the CRLF terminators
     pub fn unterminated(&self) -> Unterminated<'_> {
         Unterminated {
-            article: &self,
-            inner: self.line_boundaries.iter(),
+            inner: self.lines(),
         }
     }
 
@@ -119,34 +120,9 @@ impl TryFrom<&RawResponse> for BinaryArticle {
     /// * [response-220-content](https://tools.ietf.org/html/rfc3977#section-9.4.2)
     /// * [article](https://tools.ietf.org/html/rfc3977#section-9.7)
     fn try_from(resp: &RawResponse) -> Result<Self> {
-        let (number, message_id) = {
-            if resp.code != ResponseCode::Known(Kind::Article) {
-                // FIXME(craft): Defense in depth; introduce generic response code checking as part of
-                //  NntpResponseBody rather than relying on this code path only being hit when the code
-                //  is right.
-                return Err(Error::Deserialization(format!(
-                    "Invalid response code {}",
-                    resp.code()
-                )));
-            }
+        err_if_not_kind(resp, Kind::Article)?;
+        let (number, message_id) = process_article_first_line(&resp)?;
 
-            // FIXME(craft): reduce boilerplate for getting iterator over lossy first line
-            let lossy = resp.first_line_to_utf8_lossy();
-            let mut iter = lossy.split_whitespace();
-
-            iter.next(); // skip response code since we already parsed it
-
-            let number: u32 = parse_field(&mut iter, "article-number")?;
-            // https://tools.ietf.org/html/rfc3977#section-9.8
-            let message_id: String = parse_field(&mut iter, "message-id")?;
-            (number, message_id)
-        };
-
-        trace!(
-            "Parsed article-number {} and message-id {} from Article",
-            number,
-            message_id
-        );
         let data_blocks = resp
             .data_blocks
             .as_ref()
@@ -166,45 +142,11 @@ impl TryFrom<&RawResponse> for BinaryArticle {
             .collect::<Vec<_>>();
 
         Ok(Self {
+            number,
+            message_id,
             headers: Headers(headers),
             body: body.to_vec(),
             line_boundaries,
         })
-    }
-}
-
-impl NntpResponseBody for BinaryArticle {}
-
-/// Created by [`BinaryArticle::lines`]
-#[derive(Clone, Debug)]
-pub struct Lines<'a> {
-    article: &'a BinaryArticle,
-    inner: std::slice::Iter<'a, (usize, usize)>,
-}
-
-impl<'a> Iterator for Lines<'a> {
-    type Item = &'a [u8];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.inner
-            .next()
-            .map(|(start, end)| &self.article.body[*start..*end])
-    }
-}
-
-/// Created by [`BinaryArticle::unterminated`]
-#[derive(Clone, Debug)]
-pub struct Unterminated<'a> {
-    article: &'a BinaryArticle,
-    inner: std::slice::Iter<'a, (usize, usize)>,
-}
-
-impl<'a> Iterator for Unterminated<'a> {
-    type Item = &'a [u8];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.inner
-            .next()
-            .map(|(start, end)| &self.article.body[*start..*end - 2])
     }
 }

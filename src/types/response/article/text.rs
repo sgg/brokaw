@@ -10,7 +10,7 @@ use crate::types::response::{BinaryArticle, Headers};
 /// * [`from_binary`](`Self::from_binary`) is fallible as it performs UTF-8 checks
 /// * [`from_binary_lossy`](Self::from_binary_lossy) is infallible but will replace
 /// non UTF-8 characters with placeholders
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TextArticle {
     pub(crate) headers: Headers,
     pub(crate) body: Vec<String>,
