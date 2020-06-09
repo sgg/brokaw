@@ -44,13 +44,21 @@ impl Headers {
 
     /// An iterator over the headers
     pub fn iter(&self) -> Iter<'_> {
-        Iter { inner: self.inner.iter() }
+        Iter { inner: self.inner.values() }
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Iter<'a> {
-    inner: hash_map::Iter<'a, String, Header>,
+    inner: hash_map::Values<'a, String, Header>,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = &'a Header;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
 }
 
 /// The response to a `HEAD` command
