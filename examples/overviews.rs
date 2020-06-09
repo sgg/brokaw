@@ -1,5 +1,6 @@
 // FIXME(examples) fix this example
 
+/*
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
@@ -124,3 +125,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     Ok(())
 }
+*/ fn main() {unimplemented!() }
