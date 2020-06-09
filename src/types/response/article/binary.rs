@@ -144,7 +144,7 @@ impl TryFrom<&RawResponse> for BinaryArticle {
         Ok(Self {
             number,
             message_id,
-            headers: Headers(headers),
+            headers,
             body: body.to_vec(),
             line_boundaries,
         })

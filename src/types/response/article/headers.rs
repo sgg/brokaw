@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{hash_map, HashMap};
 use std::convert::TryFrom;
 
 use crate::error::{Error, Result};
@@ -14,7 +14,19 @@ use crate::types::response::util::{err_if_not_kind, process_article_first_line};
 ///
 /// [Header Folding](https://tools.ietf.org/html/rfc3977#appendix-A.1)
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Headers(pub HashMap<String, Vec<String>>);
+pub struct Headers {
+    pub(crate) inner: HashMap<String, Header>,
+    pub(crate) len: u32,
+}
+
+/// An individual header
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Header {
+    /// The name of the header
+    pub name: String,
+    /// One-or-more content values for the header
+    pub content: Vec<String>,
+}
 
 impl Headers {
     /// The total number of headers
@@ -22,10 +34,23 @@ impl Headers {
     /// Note that this may be _more than_ the number of keys as headers may be repeated
     pub fn len(&self) -> usize {
         // FIXME(perf): simply pre-calculate this when we create Headers
-        self.0.values().map(Vec::len).sum()
+        self.len as _
     }
 
-    fn iter() {} // TODO(header iterator)
+    /// Get a header by name
+    pub fn get(&self, key: impl AsRef<str>) -> Option<&Header> {
+        self.inner.get(key.as_ref())
+    }
+
+    /// An iterator over the headers
+    pub fn iter(&self) -> Iter<'_> {
+        Iter { inner: self.inner.iter() }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Iter<'a> {
+    inner: hash_map::Iter<'a, String, Header>,
 }
 
 /// The response to a `HEAD` command
@@ -57,7 +82,7 @@ impl TryFrom<&RawResponse> for Head {
         Ok(Self {
             number,
             message_id,
-            headers: Headers(headers),
+            headers,
         })
     }
 }

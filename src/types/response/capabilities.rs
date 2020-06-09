@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map};
 use std::convert::TryFrom;
 
 use crate::error::{Error, Result};
@@ -7,15 +7,38 @@ use crate::types::response::util::err_if_not_kind;
 
 /// Server capabilities
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Capabilities(pub HashMap<String, Option<Vec<String>>>);
+pub struct Capabilities(HashMap<String, Option<Vec<String>>>);
 
 // FIXME(craft): newtype (or deprecate) Capabilities iterator
 impl Capabilities {
+
     /// An iterator over the capabilities
-    pub fn iter(&self) -> std::collections::hash_map::Iter<'_, String, Option<Vec<String>>> {
-        self.0.iter()
+    pub fn iter(&self) -> Iter<'_>{
+        Iter {
+            inner: self.0.iter()
+        }
+    }
+
+    /// Retrieve a capability if it exists
+    pub fn get(&self, key: impl AsRef<str>) -> Option<&Option<Vec<String>>> {
+        self.0.get(key.as_ref())
     }
 }
+
+/// Created by [`Capabilities::iter`]
+#[derive(Clone, Debug)]
+pub struct Iter<'a> {
+    inner: hash_map::Iter<'a, String, Option<Vec<String>>>,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = (&'a String, &'a Option<Vec<String>>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
 
 impl TryFrom<&RawResponse> for Capabilities {
     type Error = Error;

@@ -25,7 +25,13 @@ pub struct NntpClient {
 
 impl NntpClient {
     /// Get the raw [`NntpConnection`] for the client
-    fn conn(&mut self) -> &mut NntpConnection {
+    ///
+    /// # Usage
+    ///
+    /// NNTP is a *STATEFUL PROTOCOL* and misusing the underlying connection may
+    /// mess up the state of the client. For example, manually sending a `GROUP`
+    /// command would leave the client state inconsistant.
+    pub fn conn(&mut self) -> &mut NntpConnection {
         &mut self.conn
     }
 

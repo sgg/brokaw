@@ -93,7 +93,6 @@ mod tests {
         b"200 news.example.com InterNetNews server INN 2.5.5 ready (transit mode)\r\n";
     const MOTD_NO_CRLF: &[u8] =
         b"200 news.example.com InterNetNews server INN 2.5.5 ready (transit mode)";
-    const CRLF: &[u8] = b"\r\n";
 
     mod test_parse_initial_response {
         use super::*;

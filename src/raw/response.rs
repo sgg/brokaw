@@ -55,12 +55,6 @@ impl RawResponse {
         }
     }
 
-    /// Return the first line as UTF-8
-    pub fn first_line_as_utf8(&self) -> Result<&str, std::str::Utf8Error> {
-        // TODO: remove this
-        from_utf8(&self.first_line).map(|s| s.trim())
-    }
-
     /// Lossily convert the first line to UTF-8
     pub fn first_line_to_utf8_lossy(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(&self.first_line)

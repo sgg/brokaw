@@ -21,6 +21,6 @@ mod text;
 
 pub use binary::BinaryArticle;
 pub use body::Body;
-pub use headers::{Head, Headers};
+pub use headers::{Head, Header, Headers};
 pub use stat::Stat;
 pub use text::TextArticle;

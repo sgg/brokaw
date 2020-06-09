@@ -1,14 +1,16 @@
+use std::collections::HashMap;
+
 use nom::branch::alt;
-
-use nom::bytes::complete::{is_a, take, take_while, take_while1, take_while_m_n};
+use nom::bytes::complete::{take, take_while1};
 use nom::character::complete::{char, crlf, space0, space1};
-
 use nom::combinator::{opt, verify};
 use nom::lib::std::str::from_utf8;
 use nom::multi::{fold_many1, many0};
 use nom::sequence::{terminated, tuple};
 use nom::IResult;
-use std::collections::HashMap;
+
+use crate::types::prelude::Header;
+use crate::types::response::Headers;
 
 /// Returns true if the character is any ASCII non-control character other than a colon
 ///
@@ -141,21 +143,36 @@ fn take_header(b: &[u8]) -> IResult<&[u8], (&[u8], &[u8])> {
     Ok((rest, (header_name, header_content)))
 }
 
-pub(crate) fn take_headers(b: &[u8]) -> IResult<&[u8], HashMap<String, Vec<String>>> {
+pub(crate) fn take_headers(b: &[u8]) -> IResult<&[u8], Headers> {
     // n.b. assuming there are no parsing bugs (big if there), it should be sound to use
-    // from_utf8_unchecked here since we already did utf8 checks while parsing.
+    // from_utf8_unchecked on header names since we already did utf8 checks while parsing.
 
-    let fold_headers = fold_many1(take_header, HashMap::new(), |mut acc, (name, content)| {
-        let name = String::from_utf8_lossy(name).to_string();
-        let content = String::from_utf8_lossy(content).to_string();
-        let entries: &mut Vec<_> = acc.entry(name).or_default();
-        entries.push(content);
+    let fold_headers = fold_many1(
+        take_header,
+        (HashMap::new(), 0),
+        |(mut map, mut len), (name, content)| {
+            let name = String::from_utf8_lossy(name).to_string();
+            let content = String::from_utf8_lossy(content).to_string();
+            let header = map.entry(name.clone()).or_insert(Header {
+                name,
+                content: vec![],
+            });
+            header.content.push(content);
 
-        acc
-    });
+            len += 1;
 
-    let (rest, header_map) = terminated(fold_headers, crlf)(b)?;
-    Ok((rest, header_map))
+            (map, len)
+        },
+    );
+
+    let (rest, (inner, len)) = terminated(fold_headers, crlf)(b)?;
+
+    let headers = Headers {
+        inner,
+        len
+    };
+
+    Ok((rest, headers))
 }
 
 #[cfg(test)]
@@ -289,7 +306,7 @@ mod tests {
         println!("{:#?}", headers);
 
         assert!(rest.starts_with(b"In bug 1630935 [1], I intend to deprecate support for drawing"));
-        assert!(headers.contains_key("X-Received"));
-        assert_eq!(headers.get("X-Received").unwrap().len(), 2);
+        assert!(headers.inner.contains_key("X-Received"));
+        assert_eq!(headers.get("X-Received").unwrap().content.len(), 2);
     }
 }

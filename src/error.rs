@@ -41,14 +41,6 @@ impl Error {
         }
     }
 
-    pub(crate) fn failure_msg(resp: RawResponse, msg: impl AsRef<str>) -> Self {
-        Error::Failure {
-            code: resp.code(),
-            resp,
-            msg: Some(msg.as_ref().to_string()),
-        }
-    }
-
     pub(crate) fn de(msg: impl AsRef<str>) -> Self {
         Error::Deserialization(msg.as_ref().to_string())
     }
