@@ -252,8 +252,8 @@ impl ClientConfig {
     /// Join a group upon connection
     ///
     /// If this is set to None then no `GROUP` command will be sent when the client is initialized
-    pub fn group(&mut self, name: Option<String>) -> &mut Self {
-        self.group = name;
+    pub fn group(&mut self, name: Option<impl AsRef<str>>) -> &mut Self {
+        self.group = name.map(|s| s.as_ref().to_string());
         self
     }
 

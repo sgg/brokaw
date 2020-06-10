@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use log::*;
 use nom::branch::alt;
 use nom::bytes::complete::{take, take_while1};
 use nom::character::complete::{char, crlf, space0, space1};
@@ -116,13 +117,22 @@ fn take_ascii_byte(b: &[u8]) -> IResult<&[u8], &[u8]> {
 /// ```abnf
 /// header-content = [WS] token *( [CRLF] WS token )
 /// ```
+///
+/// # Non-Compliant Whitespace
+///
+/// * All of the header RFCs I've come indicate there is no whitespace allowed between tokens and
+/// CLRF characters. Thankfully mail servers don't follow RFCs and violate this anyways so we
+/// do allow this *non-compliant* behavior to ease user suffering
 fn take_header_content(b: &[u8]) -> IResult<&[u8], &[u8]> {
     let (rest, (_ws, _token, _more_tokens)) = tuple((
-        opt(space0),
+        space0,
         take_token,
-        many0(tuple((opt(crlf), space1, take_token))),
+        many0(tuple((
+            opt(tuple((space0, crlf))), // Per RFC this *should* be opt(crlf), see non-compliant whitespace note
+            space1,
+            take_token,
+        ))),
     ))(b)?;
-
     let bytes_read = b.len() - rest.len();
     Ok((rest, &b[..bytes_read]))
 }
@@ -136,10 +146,15 @@ fn take_header_content(b: &[u8]) -> IResult<&[u8], &[u8]> {
 fn take_header(b: &[u8]) -> IResult<&[u8], (&[u8], &[u8])> {
     // he
     let (rest, (header_name, _, _, header_content)) = terminated(
-        tuple((take_header_name, char(':'), char(' '), take_header_content)),
+        tuple((
+            take_header_name,
+            char(':'),
+            char(' '),
+            opt(take_header_content),
+        )),
         crlf,
     )(b)?;
-    Ok((rest, (header_name, header_content)))
+    Ok((rest, (header_name, header_content.unwrap_or_default())))
 }
 
 pub(crate) fn take_headers(b: &[u8]) -> IResult<&[u8], Headers> {
@@ -152,6 +167,8 @@ pub(crate) fn take_headers(b: &[u8]) -> IResult<&[u8], Headers> {
         |(mut map, mut len), (name, content)| {
             let name = String::from_utf8_lossy(name).to_string();
             let content = String::from_utf8_lossy(content).to_string();
+            trace!("Found header name `{}` -- `{}`", name, content);
+
             let header = map.entry(name.clone()).or_insert(Header {
                 name,
                 content: vec![],
@@ -285,6 +302,25 @@ mod tests {
                 from_utf8(content).unwrap(),
                 header.splitn(2, ':').nth(1).map(|s| s.trim()).unwrap()
             )
+        }
+
+        #[test]
+        fn test_empty_contents() {
+            let header = b"X-Spam-Level: \r\n";
+            let (_rest, (name, content)) = take_header(header).unwrap();
+            assert_eq!(name, b"X-Spam-Level");
+            assert_eq!(content, b"");
+        }
+
+        #[test]
+        fn test_non_compliant_whitespace() {
+            let header = b"X-Received: by 2002:a65:508c:: with SMTP id r12mr626047pgp.233.1591751885013; \r\n Tue, 09 Jun 2020 18:18:05 -0700 (PDT)\r\n";
+
+            let (_rest, (name, content)) = take_header(header).unwrap();
+            assert_eq!(name, b"X-Received");
+            assert_eq!(
+                content,
+                &b"by 2002:a65:508c:: with SMTP id r12mr626047pgp.233.1591751885013; \r\n Tue, 09 Jun 2020 18:18:05 -0700 (PDT)"[..]);
         }
     }
 

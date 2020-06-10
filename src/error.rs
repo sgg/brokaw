@@ -24,7 +24,7 @@ pub enum Error {
     ///
     /// This is usually of an I/O error or a TLS error
     Connection(#[from] crate::raw::error::Error),
-    /// An error deserializing response into a concrete type
+    /// An error deserializing a [RawResponse] into a concrete type
     #[error("{0}")]
     Deserialization(String),
     /// An error deserializing bytes as UTF-8

@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::types::response::{BinaryArticle, Headers};
+use crate::types::prelude::*;
 
 /// A text Netnews article
 ///
@@ -12,14 +12,31 @@ use crate::types::response::{BinaryArticle, Headers};
 /// non UTF-8 characters with placeholders
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TextArticle {
+    pub(crate) number: ArticleNumber,
+    pub(crate) message_id: String,
     pub(crate) headers: Headers,
     pub(crate) body: Vec<String>,
 }
 
 impl TextArticle {
+    /// The number of the article relative to the group it was retrieved from
+    pub fn number(&self) -> ArticleNumber {
+        self.number
+    }
+
+    /// The message id of the article
+    pub fn message_id(&self) -> &str {
+        &self.message_id
+    }
+
     /// The headers on the article
     pub fn headers(&self) -> &Headers {
         &self.headers
+    }
+
+    /// Return the body of the article
+    pub fn body(&self) -> &[String] {
+        self.body.as_slice()
     }
 
     /// Create a text article from a

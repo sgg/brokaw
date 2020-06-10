@@ -37,6 +37,16 @@ pub struct BinaryArticle {
 }
 
 impl BinaryArticle {
+    /// The number of the article relative to the group it was retrieved from
+    pub fn number(&self) -> ArticleNumber {
+        self.number
+    }
+
+    /// The message id of the article
+    pub fn message_id(&self) -> &str {
+        &self.message_id
+    }
+
     /// The headers on the article
     pub fn headers(&self) -> &Headers {
         &self.headers
@@ -78,7 +88,14 @@ impl BinaryArticle {
             .map(|l| from_utf8(l).map(ToString::to_string))
             .collect::<StdResult<_, _>>()?;
 
-        Ok(TextArticle { headers, body })
+        let number = self.number;
+        let message_id = self.message_id.clone();
+        Ok(TextArticle {
+            number,
+            message_id,
+            headers,
+            body,
+        })
     }
 
     /// Convert the article into a [`TextArticle`] including invalid characters.
@@ -93,7 +110,14 @@ impl BinaryArticle {
             .map(|cow| cow.to_string())
             .collect::<Vec<String>>();
 
-        TextArticle { headers, body }
+        let number = self.number;
+        let message_id = self.message_id.clone();
+        TextArticle {
+            number,
+            message_id,
+            headers,
+            body,
+        }
     }
 }
 
@@ -128,8 +152,12 @@ impl TryFrom<&RawResponse> for BinaryArticle {
             .as_ref()
             .ok_or_else(Error::missing_data_blocks)?;
 
-        let (body, headers) = take_headers(&data_blocks.payload())
-            .map_err(|e| Error::invalid_data_blocks(format!("{}", e)))?;
+        let (body, headers) = take_headers(&data_blocks.payload()).map_err(|e| match e {
+            nom::Err::Incomplete(n) => Error::Deserialization(format!("{:?}", n)),
+            nom::Err::Error((_, kind)) | nom::Err::Failure((_, kind)) => {
+                Error::invalid_data_blocks(format!("{:?}", kind))
+            }
+        })?;
 
         let bytes_read = data_blocks.payload.len() - body.len();
         trace!("Read {} bytes as headers", bytes_read);

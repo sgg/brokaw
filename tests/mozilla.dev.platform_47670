@@ -1,0 +1,100 @@
+200 news.mozilla.org
+211 47669 2 47670 mozilla.dev.platform
+220 47670 <mailman.35.1591751889.1118.dev-platform@lists.mozilla.org>
+Path: buffer1.nntp.dca1.giganews.com!buffer2.nntp.dca1.giganews.com!nntp.mozilla.org!news.mozilla.org.POSTED!not-for-mail
+NNTP-Posting-Date: Tue, 09 Jun 2020 20:18:09 -0500
+Return-Path: <mthomson@mozilla.com>
+X-Original-To: dev-platform@lists.mozilla.org
+Delivered-To: dev-platform@lists.mozilla.org
+X-Virus-Scanned: amavisd-new at mozilla.org
+X-Spam-Flag: NO
+X-Spam-Score: -0.04
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.04 tagged_above=-999 required=5
+ tests=[BAYES_00=-0.05, KAM_DMARC_STATUS=0.01]
+ autolearn=ham autolearn_force=no
+Authentication-Results: mailman2.mail.mdc2.mozilla.com (amavisd-new);
+ dkim=pass (1024-bit key) header.d=mozilla.com
+Received-SPF: pass (mozilla.com: Sender is authorized to use
+ 'mthomson@mozilla.com' in 'mfrom' identity (mechanism
+ 'include:%{i}._ip.%{h}._ehlo.%{d}._spf.vali.email' matched))
+ receiver=mailman2.mail.mdc2.mozilla.com; identity=mailfrom;
+ envelope-from="mthomson@mozilla.com"; helo=mail-pg1-f173.google.com;
+ client-ip=209.85.215.173
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mozilla.com; s=google;
+ h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+ :cc; bh=/1euRQ4OZ9mOhdDNQqCFp/7fHeqGNUu3jR29//YQzgA=;
+ b=Lp5Ij7spQDLa6Um4eKXnIYT0UGMVWzJTJyJHtbm0s1OgEZjxXrbomZxA8XBdSxwBxa
+ pgTPC/so8gWTbnIlWSbc7oifVknKqndKWBqJmzvxjAQcp8C+tIFoToiy0A+V83YTh8Ys
+ xur8bXSzS5EOt8NGWvZO10OZybTOxin2IPFBQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+ :message-id:subject:to:cc;
+ bh=/1euRQ4OZ9mOhdDNQqCFp/7fHeqGNUu3jR29//YQzgA=;
+ b=g8GK65aSudTKTCjoueUUz7LhMVEHe5NcDrFywXL2dF9bmXtfyKQ2kXaEk9qir6TFkJ
+ VHdGa95DxNRpwiE738FFViZrLqFFHAEq58uBXQXjopNglyY7dc95B1jnVbVP5PxJZygC
+ xSd9ap47r4ewSGqMu5+WXeOGHWMUs1XRAkKVt2fyEAgoqxPgEOmK88ibSICHDjikPm8Y
+ Y8EOaZ+fq17xMuWPfPYOlu2KLuRQ6tlBcCvD/YiBIoYch30BtU0ALReU6LlQQeld90V0
+ uHwZd4YJXrhXZm43Fl75YRX+t3YmOd6nP2cTfAhUdCtA8ND3mz4oVDZEkn5BNoyDlcDC
+ lo7w==
+X-Gm-Message-State: AOAM533zxLL7knEUWLTP7J2bQswb+/ArbGnNCRhOW8sWcwisa/q5reZP
+ 8plXrJgbRfryzxX+qzFe15vXLi3RnwNOMneYC4M4/yBUP9U=
+X-Google-Smtp-Source: ABdhPJy09t6yEwayDMKxycGi597sJbfbJ0hMR8tch5sVwgYmA5PC74cZdhCc7XJqeE8oKNKqAAbCqay/0KrXeY1NadY=
+X-Received: by 2002:a65:508c:: with SMTP id r12mr626047pgp.233.1591751885013; 
+ Tue, 09 Jun 2020 18:18:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20200609220107.GA31475@pescadero.dbaron.org>
+From: Martin Thomson <mt@mozilla.com>
+Date: Wed, 10 Jun 2020 11:17:56 +1000
+Subject: Re: Intent To Ship: backdrop-filter
+To: "L. David Baron" <dbaron@dbaron.org>
+Cc: Erik Nordin <enordin@mozilla.com>,
+ dev-platform <dev-platform@lists.mozilla.org>
+Content-Type: text/plain; charset="UTF-8"
+X-BeenThere: dev-platform@lists.mozilla.org
+X-Mailman-Version: 2.1.26
+Precedence: list
+List-Id: "The Mozilla platform: \"gecko\"" <dev-platform.lists.mozilla.org>
+List-Unsubscribe: <https://lists.mozilla.org/options/dev-platform>,
+ <mailto:dev-platform-request@lists.mozilla.org?subject=unsubscribe>
+List-Archive: <http://lists.mozilla.org/pipermail/dev-platform/>
+List-Post: <mailto:dev-platform@lists.mozilla.org>
+List-Help: <mailto:dev-platform-request@lists.mozilla.org?subject=help>
+List-Subscribe: <https://lists.mozilla.org/listinfo/dev-platform>,
+ <mailto:dev-platform-request@lists.mozilla.org?subject=subscribe>
+Approved: dev-platform@lists.mozilla.org
+Newsgroups: mozilla.dev.platform
+Message-ID: <mailman.35.1591751889.1118.dev-platform@lists.mozilla.org>
+X-Mailman-Original-Message-ID: <CAPLxc=VK_kEkyKar8xDgOb=zFQxJf+QfMpVEX7f5bWiyiDaHmA@mail.gmail.com>
+X-Mailman-Original-References: <CAG6CRbYXVH75UJtpQL6NzDq3NCzM0bmQAvQn0uasK6fZcJymFg@mail.gmail.com>
+ <20200609220107.GA31475@pescadero.dbaron.org>
+References: <CAG6CRbYXVH75UJtpQL6NzDq3NCzM0bmQAvQn0uasK6fZcJymFg@mail.gmail.com>
+ <20200609220107.GA31475@pescadero.dbaron.org>
+ <CAPLxc=VK_kEkyKar8xDgOb=zFQxJf+QfMpVEX7f5bWiyiDaHmA@mail.gmail.com>
+Lines: 11
+X-Usenet-Provider: http://www.giganews.com
+NNTP-Posting-Host: 63.245.210.105
+X-AuthenticatedUsername: NoAuthUser
+X-Trace: sv3-9neqMQmPdmf54PIvp37HW/8ilVvMd66VNMevlzyJrM0zciTxcNim26xDe3Hl6U43oyrglqdbY4svvSP!oGz8o9TyqILSQMzikU/P+eQwHsGS2r2s0UchGXMuIAOGW/WxqAL9yjbFbsf7m93/nWNmEZvyvcKe!EB0HDLAzMApk5hNZs2SXb1t12C2gdIY=
+X-Complaints-To: abuse@mozilla.org
+X-DMCA-Complaints-To: abuse@mozilla.org
+X-Abuse-and-DMCA-Info: Please be sure to forward a copy of ALL headers
+X-Abuse-and-DMCA-Info: Otherwise we will be unable to process your complaint properly
+X-Postfilter: 1.3.40
+Bytes: 5156
+Xref: number.nntp.giganews.com mozilla.dev.platform:47670
+
+On Wed, Jun 10, 2020 at 8:01 AM L. David Baron <dbaron@dbaron.org> wrote:
+> It's also something that I think we shouldn't be doing, at least not
+> without a clear and relatively short timeline for having the feature
+> available across all graphics backends (whether by implementing it
+> for more backends or by no longer shipping those backends).
+
+I agree with David's reasoning here about this being potentially
+harmful, but I do recognize the value of prototyping or experimenting.
+This doesn't seem to be either of those though.
+
+To that end, is there a plan for making this capability uniformly available?
+.
+205 goodbye
