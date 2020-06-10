@@ -44,7 +44,9 @@ impl Headers {
 
     /// An iterator over the headers
     pub fn iter(&self) -> Iter<'_> {
-        Iter { inner: self.inner.values() }
+        Iter {
+            inner: self.inner.values(),
+        }
     }
 }
 

@@ -210,17 +210,6 @@ impl NntpClient {
         }
     }
 
-    /*
-    fn overviews(&mut self, _overview: cmd::Over) -> Result<()> {
-        // check capabilities for over and xover
-        unimplemented!()
-    }
-
-    fn list(&mut self, _list: cmd::List) -> Result<()> {
-        unimplemented!()
-    }
-    */
-
     /// Close the connection to the server
     pub fn close(&mut self) -> Result<RawResponse> {
         let resp = self

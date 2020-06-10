@@ -125,4 +125,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     Ok(())
 }
-*/ fn main() {unimplemented!() }
+*/
+fn main() {
+    unimplemented!()
+}

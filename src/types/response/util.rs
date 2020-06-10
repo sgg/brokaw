@@ -22,10 +22,10 @@ pub(crate) fn parse_field<'a, T: FromStr>(
 /// Return a deserialization error if the response does match the desired error code
 pub(crate) fn err_if_not_kind(resp: &RawResponse, desired: Kind) -> Result<()> {
     if resp.code != ResponseCode::Known(desired) {
-        return Err(Error::Deserialization(format!(
+        Err(Error::Deserialization(format!(
             "Invalid response code {}",
             resp.code()
-        )));
+        )))
     } else {
         Ok(())
     }

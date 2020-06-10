@@ -1,4 +1,4 @@
-use std::collections::{HashMap, hash_map};
+use std::collections::{hash_map, HashMap};
 use std::convert::TryFrom;
 
 use crate::error::{Error, Result};
@@ -14,15 +14,14 @@ pub struct Capabilities(HashMap<String, Capability>);
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Capability {
     pub name: String,
-    pub args: Option<HashSet<String>>
+    pub args: Option<HashSet<String>>,
 }
 
 impl Capabilities {
-
     /// An iterator over the capabilities
-    pub fn iter(&self) -> Iter<'_>{
+    pub fn iter(&self) -> Iter<'_> {
         Iter {
-            inner: self.0.values()
+            inner: self.0.values(),
         }
     }
 
@@ -45,7 +44,6 @@ impl<'a> Iterator for Iter<'a> {
         self.inner.next()
     }
 }
-
 
 impl TryFrom<&RawResponse> for Capabilities {
     type Error = Error;
@@ -79,7 +77,7 @@ impl TryFrom<&RawResponse> for Capabilities {
 
                 let cap = Capability {
                     name: label.clone(),
-                    args
+                    args,
                 };
 
                 Ok((label, cap))

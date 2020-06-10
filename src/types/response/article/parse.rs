@@ -167,10 +167,7 @@ pub(crate) fn take_headers(b: &[u8]) -> IResult<&[u8], Headers> {
 
     let (rest, (inner, len)) = terminated(fold_headers, crlf)(b)?;
 
-    let headers = Headers {
-        inner,
-        len
-    };
+    let headers = Headers { inner, len };
 
     Ok((rest, headers))
 }
