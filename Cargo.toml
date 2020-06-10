@@ -23,7 +23,6 @@ thiserror = "1.0"
 
 [dev-dependencies]
 anyhow = "1.0.31"
-chrono = "0.4.11"
 env_logger = "0.7.1"
 rpassword = "4.0.5"
 structopt = "0.3.14"
