@@ -9,8 +9,7 @@ use nom::multi::{fold_many1, many0};
 use nom::sequence::{terminated, tuple};
 use nom::IResult;
 
-use crate::types::prelude::Header;
-use crate::types::response::Headers;
+use crate::types::prelude::{Header, Headers};
 
 /// Returns true if the character is any ASCII non-control character other than a colon
 ///
@@ -197,7 +196,7 @@ mod tests {
 
         #[test]
         fn fail_ascii() {
-            assert_eq!(is_utf8_non_ascii("1".as_bytes()), false)
+            assert_eq!(is_utf8_non_ascii(b"1"), false)
         }
     }
 
@@ -230,7 +229,7 @@ mod tests {
         use super::*;
         #[test]
         fn happy_path() {
-            let (_rest, _char) = take_ascii_byte("5".as_bytes()).unwrap();
+            let (_rest, _char) = take_ascii_byte(b"5").unwrap();
         }
         #[test]
         fn fail_on_unicode() {
@@ -284,12 +283,7 @@ mod tests {
             assert_eq!(name, header.split(':').next().unwrap().as_bytes());
             assert_eq!(
                 from_utf8(content).unwrap(),
-                header
-                    .splitn(2, ':')
-                    .skip(1)
-                    .next()
-                    .map(|s| s.trim())
-                    .unwrap()
+                header.splitn(2, ':').nth(1).map(|s| s.trim()).unwrap()
             )
         }
     }
@@ -297,7 +291,7 @@ mod tests {
     #[test]
     fn test_take_headers() {
         // strip the initial response line
-        let article = TEXT_ARTICLE.splitn(2, '\n').skip(1).next().unwrap();
+        let article = TEXT_ARTICLE.splitn(2, '\n').nth(1).unwrap();
         let (rest, headers) = take_headers(article.as_bytes()).unwrap();
 
         println!("{:#?}", headers);

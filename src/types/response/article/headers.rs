@@ -33,8 +33,12 @@ impl Headers {
     ///
     /// Note that this may be _more than_ the number of keys as headers may be repeated
     pub fn len(&self) -> usize {
-        // FIXME(perf): simply pre-calculate this when we create Headers
         self.len as _
+    }
+
+    /// Returns true if there are no headers
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 
     /// Get a header by name
@@ -85,7 +89,8 @@ impl TryFrom<&RawResponse> for Head {
         let data_blocks = resp
             .data_blocks
             .as_ref()
-            .ok_or_else(|| Error::missing_data_blocks())?;
+            .ok_or_else(Error::missing_data_blocks)?;
+
         let (_, headers) = take_headers(&data_blocks.payload())
             .map_err(|e| Error::invalid_data_blocks(format!("{}", e)))?;
 

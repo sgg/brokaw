@@ -47,7 +47,7 @@ impl TryFrom<&RawResponse> for Body {
         } = resp
             .data_blocks
             .as_ref()
-            .ok_or_else(|| Error::missing_data_blocks())?
+            .ok_or_else(Error::missing_data_blocks)?
             .clone();
 
         Ok(Self {

@@ -126,7 +126,7 @@ impl TryFrom<&RawResponse> for BinaryArticle {
         let data_blocks = resp
             .data_blocks
             .as_ref()
-            .ok_or_else(|| Error::missing_data_blocks())?;
+            .ok_or_else(Error::missing_data_blocks)?;
 
         let (body, headers) = take_headers(&data_blocks.payload())
             .map_err(|e| Error::invalid_data_blocks(format!("{}", e)))?;

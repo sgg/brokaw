@@ -200,9 +200,7 @@ impl NntpClient {
     pub fn stat(&mut self, stat: cmd::Stat) -> Result<Option<Stat>> {
         let resp = self.conn.command(&stat)?;
         match resp.code() {
-            ResponseCode::Known(Kind::ArticleExists) => {
-                resp.borrow().try_into().map(|stat| Some(stat))
-            }
+            ResponseCode::Known(Kind::ArticleExists) => resp.borrow().try_into().map(Some),
             ResponseCode::Known(Kind::NoArticleWithMessageId)
             | ResponseCode::Known(Kind::InvalidCurrentArticleNumber)
             | ResponseCode::Known(Kind::NoArticleWithNumber) => Ok(None),
