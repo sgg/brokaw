@@ -12,9 +12,16 @@ use crate::raw::response::RawResponse;
 use crate::types::command as cmd;
 use crate::types::prelude::*;
 
-/// A client
+/// A client that returns typed responses and provides state management
 ///
-/// Each client represents a single connection
+/// `NntpClient` is built on top of [`NntpConnection`] and offers several niceties:
+///
+/// 1. Responses from the server are typed and semantically validated
+/// 2. Management of the connection state (e.g. current group, known capabilities)
+///
+/// In exchange for these niceties, `NntpClient` does not provide the low-allocation guarantees
+/// that `NntpConnection` does. If you are really concerned about memory management,
+/// you may want to use the [`NntpConnection`].
 #[derive(Debug)]
 pub struct NntpClient {
     conn: NntpConnection,

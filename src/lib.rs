@@ -6,17 +6,28 @@
     unconditional_recursion
 )]
 
-//! TODO(docs) Brokaw
+//! 🗞 Brokaw is an Usenet/NNTP client library
+//!
+//! # APIs
+//!
+//! Brokaw provides two primary APIs:
+//!
+//! 1. The [`NntpClient`] provides a higher-level that provides a a config based builder
+//! and automatic deserialization of responses into different types.
+//! 2. The [`NntpConnection`] provides a lower-level abstraction that only provides validation
+//! that messages adhere to NNTP's wire format.
+//!
+//! ---
+//!
+//! Please check out the in-repo [README](https://github.com/sgg/brokaw) for examples.
 
 #[cfg(doctest)]
 doc_comment::doctest!("../README.md");
 
-/// The high-level client and business logic
-///
-/// TODO(details w/ examples)
+/// The high-level client and configuration API
 pub mod client;
 
-/// Error and Result types returned by the Brokaw client API
+/// Error and Result types returned by the Brokaw
 pub mod error;
 
 /// Low level connection/stream APIs
@@ -25,5 +36,10 @@ pub mod error;
 /// Consider using the higher level [`client`] APIs unless you have special requirements
 pub mod raw;
 
-/// Types for sending commands, and reading responses
+/// Typed commands, responses, and response codes
 pub mod types;
+
+#[doc(inline)]
+pub use client::{NntpClient};
+#[doc(inline)]
+pub use raw::connection::NntpConnection;

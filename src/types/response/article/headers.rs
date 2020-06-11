@@ -7,19 +7,17 @@ use crate::types::prelude::*;
 use crate::types::response::article::parse::take_headers;
 use crate::types::response::util::{err_if_not_kind, process_article_first_line};
 
-/// The headers on an article
+/// Netnews article headers
 ///
-/// Note that per [RFC 5322](https://tools.ietf.org/html/rfc5322#section-3.6) header
-/// may be repeated
-///
-/// [Header Folding](https://tools.ietf.org/html/rfc3977#appendix-A.1)
+/// Note that per [RFC 5322](https://tools.ietf.org/html/rfc5322#section-3.6) headers
+/// may be repeated (a common example is X-Received for emails mirrored onto Newsgroups)
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Headers {
     pub(crate) inner: HashMap<String, Header>,
     pub(crate) len: u32,
 }
 
-/// An individual header
+/// An individual header within a [`Headers`] collection
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     /// The name of the header
@@ -67,7 +65,7 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-/// The response to a `HEAD` command
+/// Article headers returned by [`HEAD`](https://tools.ietf.org/html/rfc3977#section-6.2.2)
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Head {
     /// The number of the article unique to a particular newsgroup

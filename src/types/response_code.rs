@@ -5,8 +5,9 @@ use std::fmt;
 ///
 ///
 /// This library supports all codes specified in [RFC 3977](https://tools.ietf.org/html/rfc3977#appendix-C).
+///
 /// Because proprietary NNTP extensions may define their own codes, there is no way for this library
-/// to know about all of the codes that exist.
+/// to know about all of the codes that exist. Unknown codes will be stored as `u16`s.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ResponseCode {
     /// A response code implemented by the library
@@ -18,27 +19,31 @@ pub enum ResponseCode {
 }
 
 impl ResponseCode {
+    /// The response is a 1xx
     pub fn is_info(&self) -> bool {
-        //let foo = (self.copy() as u16) / 100;
         let code = u16::from(*self);
         code >= 100 && code < 200
     }
 
+    /// The response is a 2xx
     pub fn is_success(&self) -> bool {
         let code = u16::from(*self);
         code >= 200 && code < 300
     }
 
+    /// The response is a 3xx
     pub fn is_success_so_far(&self) -> bool {
         let code = u16::from(*self);
         code >= 300 && code < 400
     }
 
+    /// The response is a 4xx
     pub fn is_failure(&self) -> bool {
         let code = u16::from(*self);
         code >= 400 && code < 500
     }
 
+    /// The response is a 5xx
     pub fn is_error(&self) -> bool {
         let code = u16::from(*self);
         code >= 500 && code < 600
@@ -84,6 +89,7 @@ impl fmt::Display for ResponseCode {
 /// * [RFC 3977 Appendix C](https://tools.ietf.org/html/rfc3977#appendix-C)
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, num_enum::TryFromPrimitive)]
+#[allow(missing_docs)]
 pub enum Kind {
     Help = 100,
     Capabilities = 101,

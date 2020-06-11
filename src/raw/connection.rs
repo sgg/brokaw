@@ -56,10 +56,29 @@ impl fmt::Debug for TlsConfig {
     }
 }
 
-/// A connection to an NNTP Server
+/// A raw connection to an NNTP Server
+///
+/// `NntpConnection` essentially wraps a stream. It is responsible for serializing commands
+/// and deserializing and parsing responses from the server.
+///
+/// `NntpConnection` DOES...
+///
+/// * Work very hard not to allocate while reading/parsing response
+/// * Provide facilities for you to manage your own read buffers
+/// * Guarantee that Nntp responses are *framed* properly (though not that they are semantically valid)
+///
+/// `NntpConnection` DOES NOT...
+///
+/// * Manage any of the stateful details of the connection such as server capabilities,
+/// selected group, or selected articles.
+/// * Perform detailed parsing of responses.
+///
+/// For a more ergonomic client please see the [`NntpClient`](crate::client::NntpClient).
+///
+/// # Usage
 ///
 /// Please note that NNTP is a STATEFUL protocol and the Connection DOES NOT maintain any information
-/// about this state. For a more ergonomic client please see [`NntpClient`](crate::client::NntpClient).
+/// about this state.
 ///
 /// The [`NntpConnection::command`] method can be used perform basic command/receive operations
 ///

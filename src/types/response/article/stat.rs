@@ -4,7 +4,7 @@ use crate::error::{Error, Result};
 use crate::types::prelude::*;
 use crate::types::response::util::{err_if_not_kind, process_article_first_line};
 
-/// Article metadata returned by a `STAT` command
+/// Article metadata returned by [`STAT`](https://tools.ietf.org/html/rfc3977#section-6.2.4)
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Stat {
     /// The number of the article unique to a particular newsgroup

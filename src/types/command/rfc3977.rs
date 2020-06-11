@@ -5,8 +5,11 @@ use crate::types::prelude::{ArticleNumber, NntpCommand};
 /// Retrieve an article's header and body
 #[derive(Clone, Debug)]
 pub enum Article {
+    /// Globally unique message ID
     MessageId(String),
+    /// Article number relative to the current group
     Number(ArticleNumber),
+    /// Currently selected article
     Current,
 }
 
@@ -25,8 +28,11 @@ impl NntpCommand for Article {}
 /// Retrieve the body for an Article
 #[derive(Clone, Debug)]
 pub enum Body {
+    /// Globally unique message ID
     MessageId(String),
+    /// Article number relative to the current group
     Number(ArticleNumber),
+    /// Currently selected article
     Current,
 }
 
@@ -81,16 +87,25 @@ impl NntpCommand for Group {}
 /// Retrieve a specific header from one or more articles
 #[derive(Clone, Debug)]
 pub enum Hdr {
+    /// A single article by message ID
     MessageId {
+        /// The name of the header
         field: String,
+        /// The unique message id of the article
         id: String,
     },
+    /// A range of articles
     Range {
+        /// The name of the header
         field: String,
+        /// The low number of the article range
         low: ArticleNumber,
+        /// The high number of the article range
         high: ArticleNumber,
     },
+    /// The current article
     Current {
+        /// The name of the header
         field: String,
     },
 }
@@ -110,8 +125,11 @@ impl NntpCommand for Hdr {}
 /// Retrieve the headers for an article
 #[derive(Clone, Debug)]
 pub enum Head {
+    /// Globally unique message ID
     MessageId(String),
+    /// Article number relative to the current group
     Number(ArticleNumber),
+    /// Currently selected article
     Current,
 }
 
@@ -168,6 +186,7 @@ impl NntpCommand for Last {}
 ///
 /// If you want to send LIST without any keywords simply send [`List::Active`] as they are equivalent.
 #[derive(Clone, Debug)]
+#[allow(missing_docs)]
 pub enum List {
     /// Return a list of active newsgroups
     ///
@@ -254,11 +273,16 @@ impl NntpCommand for Next {}
 /// Retrieve all of the fields (e.g. headers/metadata) for one or more articles
 #[derive(Clone, Debug)]
 pub enum Over {
+    /// A single article by message ID
     MessageId(String),
+    /// A range of articles
     Range {
+        /// The low number of the article
         low: ArticleNumber,
+        /// The high number of the article
         high: ArticleNumber,
     },
+    /// The current article
     Current,
 }
 
@@ -320,8 +344,11 @@ impl NntpCommand for Quit {}
 /// Check if an article exists in the newsgroup
 #[derive(Clone, Debug)]
 pub enum Stat {
+    /// Globally unique message ID
     MessageId(String),
+    /// Article number relative to the current group
     Number(ArticleNumber),
+    /// Currently selected article
     Current,
 }
 

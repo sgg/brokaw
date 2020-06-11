@@ -25,8 +25,6 @@ use crate::types::response::util::{err_if_not_kind, process_article_first_line};
 /// 1. Response parsing will fail if the header names are not UTF-8
 /// 2. The header contents will be lossily converted to UTF-8
 /// 3. There are no formatting constraints on the body
-///
-/// TODO Example
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BinaryArticle {
     pub(crate) number: ArticleNumber,

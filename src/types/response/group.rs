@@ -4,7 +4,7 @@ use crate::error::{Error, Result};
 use crate::types::prelude::*;
 use crate::types::response::util::{err_if_not_kind, parse_field};
 
-/// Response to the [`GROUP`](https://tools.ietf.org/html/rfc3977#section-6.1.1) command
+/// Newsgroup metadata returned by [`GROUP`](https://tools.ietf.org/html/rfc3977#section-6.1.1)
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Group {
     /// The _estimated_ number of articles in the group

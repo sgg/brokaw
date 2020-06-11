@@ -45,14 +45,17 @@ pub trait NntpCommand: fmt::Display {}
 /// Commands specified in [RFC 3977](https://tools.ietf.org/html/rfc3977#appendix-B)
 mod rfc3977;
 
+#[doc(inline)]
 pub use rfc3977::*;
 
 /// Commands specified in [RFC 2980](https://tools.ietf.org/html/rfc2980)
 mod rfc2980;
 
+#[doc(inline)]
 pub use rfc2980::*;
 
 /// AUTHINFO commands specified in [RFC 4643](https://tools.ietf.org/html/rfc4643)
 mod rfc4643;
 
+#[doc(inline)]
 pub use rfc4643::*;

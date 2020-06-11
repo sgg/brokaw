@@ -75,8 +75,13 @@ impl RawResponse {
 /// The [Multi-line Data Blocks](https://tools.ietf.org/html/rfc3977#section-3.1.1)
 /// portion of an NNTP response
 ///
-/// * [`DataBlocks::iter`](Self::iter) returns an iterator over the lines within the block
-/// * [`DataBlocks::payload`](Self::payload) returns the raw bytes
+///
+/// # Usage
+///
+/// [`DataBlocks::payload`](Self::payload) returns the raw bytes in the payload
+/// * [`DataBlocks::lines`](Self::lines) returns an iterator over the lines within the block
+/// * [`DataBlocks::unterminated`](Self::unterminated) returns an iterator over the lines with the
+/// CRLF terminator and the final `.` line of the response stripped
 #[derive(Clone, Debug)]
 pub struct DataBlocks {
     pub(crate) payload: Vec<u8>,
@@ -111,7 +116,6 @@ impl DataBlocks {
             inner: self.lines(),
         }
     }
-    // FIXME(ux): Consider introducing an iterator that does not include CRLF terminators
 
     /// The number of lines
     pub fn lines_len(&self) -> usize {
@@ -148,7 +152,7 @@ impl<'a> Iterator for Lines<'a> {
     }
 }
 
-/// An iterator created by [`RawResponse::unterminated`]
+/// An iterator created by [`DataBlocks::unterminated`]
 #[derive(Clone, Debug)]
 pub struct Unterminated<'a> {
     inner: Lines<'a>,

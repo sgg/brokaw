@@ -9,7 +9,9 @@ use super::NntpCommand;
 /// * SASL is not currently implemented
 #[derive(Clone, Debug)]
 pub enum AuthInfo {
+    /// Username
     User(String),
+    /// Password
     Pass(String),
 }
 

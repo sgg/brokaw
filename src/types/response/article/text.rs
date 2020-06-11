@@ -1,15 +1,15 @@
 use crate::error::Result;
 use crate::types::prelude::*;
 
-/// A text Netnews article
+/// A text Netnews article returned by the [`ARTICLE`](https://tools.ietf.org/html/rfc3977#section-6.2.1) command
 ///
-/// Unlike [`BinaryArticle`] a `TextArticle` must have a UTF-8 body.
+/// Unlike [`BinaryArticle`] a `TextArticle`**MUST** have a UTF-8 body.
 ///
-/// The following methods can be used to convert from a [`BinaryArticle`]
+/// The following methods can be used to create a `TextArticle` from a [`BinaryArticle`]:
 ///
 /// * [`from_binary`](`Self::from_binary`) is fallible as it performs UTF-8 checks
 /// * [`from_binary_lossy`](Self::from_binary_lossy) is infallible but will replace
-/// non UTF-8 characters with placeholders
+/// non UTF-8 characters with placeholders. Please see [`String::from_utf8_lossy`] for more info.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TextArticle {
     pub(crate) number: ArticleNumber,

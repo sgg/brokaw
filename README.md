@@ -18,7 +18,7 @@
   </a>
   <!-- docs.rs docs -->
   <a href="https://docs.rs/brokaw">
-    <img src="https://img.shields.io/badge/docs.rs-latest-blue.svg?"
+    <img src="https://docs.rs/brokaw/badge.svg?"
       alt="docs.rs docs" />
   </a>
 </div>
