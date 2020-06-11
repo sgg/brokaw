@@ -40,6 +40,6 @@ pub mod raw;
 pub mod types;
 
 #[doc(inline)]
-pub use client::{NntpClient};
+pub use client::NntpClient;
 #[doc(inline)]
 pub use raw::connection::NntpConnection;

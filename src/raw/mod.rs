@@ -18,6 +18,6 @@ pub mod response;
 pub(crate) mod stream;
 
 #[doc(inline)]
-pub use response::{RawResponse, DataBlocks};
-#[doc(inline)]
 pub use connection::{NntpConnection, TlsConfig};
+#[doc(inline)]
+pub use response::{DataBlocks, RawResponse};
