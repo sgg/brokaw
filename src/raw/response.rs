@@ -102,6 +102,15 @@ impl DataBlocks {
         }
     }
 
+    /// An iterator over the unterminated data block
+    ///
+    /// 1. Lines yielded by this iterator WILL NOT include the CRLF terminator
+    /// 2. The final line of the message containing only `.` will not be returend
+    pub fn unterminated(&self) -> Unterminated<'_> {
+        Unterminated {
+            inner: self.lines(),
+        }
+    }
     // FIXME(ux): Consider introducing an iterator that does not include CRLF terminators
 
     /// The number of lines
@@ -121,7 +130,7 @@ impl DataBlocks {
 }
 
 /// An iterator over the data blocks within a response
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Lines<'a> {
     data_blocks: &'a DataBlocks,
     inner: std::slice::Iter<'a, (usize, usize)>,
@@ -136,5 +145,25 @@ impl<'a> Iterator for Lines<'a> {
         } else {
             None
         }
+    }
+}
+
+/// An iterator created by [`RawResponse::unterminated`]
+#[derive(Clone, Debug)]
+pub struct Unterminated<'a> {
+    inner: Lines<'a>,
+}
+
+impl<'a> Iterator for Unterminated<'a> {
+    type Item = &'a [u8];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next() {
+            Some(line) if line == b".\r\n" => None,
+            Some(line) => Some(&line[..line.len() - 2]),
+            None => None,
+        }
+        //let foo: ()= self.data_blocks.lines().take_while(|line| line != b".\r\n");
+        //unimplemented!()
     }
 }

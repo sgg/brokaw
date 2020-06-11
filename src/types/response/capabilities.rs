@@ -1,10 +1,10 @@
-use std::collections::{hash_map, HashMap};
+use std::collections::{hash_map, HashMap, HashSet};
 use std::convert::TryFrom;
+use std::fmt;
 
 use crate::error::{Error, Result};
 use crate::types::prelude::*;
 use crate::types::response::util::err_if_not_kind;
-use nom::lib::std::collections::HashSet;
 
 /// Server capabilities
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -28,6 +28,22 @@ impl Capabilities {
     /// Retrieve a capability if it exists
     pub fn get(&self, key: impl AsRef<str>) -> Option<&Capability> {
         self.0.get(key.as_ref())
+    }
+}
+
+impl fmt::Display for Capability {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)?;
+        if let Some(args) = self.args.as_ref() {
+            args.iter()
+                .map(|arg| {
+                    write!(f, " {}", arg)?;
+                    Ok::<_, fmt::Error>(())
+                })
+                .for_each(drop);
+        }
+
+        Ok(())
     }
 }
 
@@ -58,7 +74,7 @@ impl TryFrom<&RawResponse> for Capabilities {
             .data_blocks
             .as_ref()
             .ok_or_else(|| Error::de("Missing data blocks."))
-            .map(DataBlocks::lines)?;
+            .map(DataBlocks::unterminated)?;
 
         let capabilities: HashMap<String, Capability> = db_iter
             .map(String::from_utf8_lossy)

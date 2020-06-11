@@ -162,12 +162,13 @@ impl TryFrom<&RawResponse> for BinaryArticle {
         let bytes_read = data_blocks.payload.len() - body.len();
         trace!("Read {} bytes as headers", bytes_read);
 
-        let line_boundaries = data_blocks
+        let mut line_boundaries = data_blocks
             .line_boundaries
             .iter()
             .skip_while(|(start, _end)| start < &bytes_read)
             .map(|(start, end)| (start - bytes_read, end - bytes_read))
             .collect::<Vec<_>>();
+        line_boundaries.pop();
 
         Ok(Self {
             number,

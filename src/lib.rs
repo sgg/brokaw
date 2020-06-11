@@ -8,6 +8,9 @@
 
 //! TODO(docs) Brokaw
 
+#[cfg(doctest)]
+doc_comment::doctest!("../README.md");
+
 /// The high-level client and business logic
 ///
 /// TODO(details w/ examples)
