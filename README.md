@@ -1,6 +1,6 @@
 <h1 align="center">Brokaw</h1>
 <div align="center">
-  <strong>📰 An NNTP client liberary. More at 11! 📰</strong>
+  <strong>📰 A Usenet/NNTP library. More at 11! 📰</strong>
 </div>
 
 <br />
@@ -24,7 +24,7 @@
 </div>
 
 
-Brokaw is a a typed Usenet library for the dozens of people still reading Netnews. It is very much in development and provides **no guarantees about stability**.
+Brokaw is a typed Usenet library for the dozens of people still reading Netnews. It is very much in development and provides **no guarantees about stability**.
 
 Brokaw (mostly) implements [RFC 3977](https://tools.ietf.org/html/rfc3977) and several popular extensions.
 
@@ -32,7 +32,7 @@ Brokaw (mostly) implements [RFC 3977](https://tools.ietf.org/html/rfc3977) and s
 
 ```toml
 [dependencies]
-brokaw = "0.0.1"
+brokaw = "*"
 ```
 
 ```rust
