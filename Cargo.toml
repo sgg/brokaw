@@ -15,6 +15,7 @@ categories = [ "network-programming"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+flate2 = "1.0.14"
 log = "0.4.8"
 native-tls = "0.2.4"
 nom = "5.1"

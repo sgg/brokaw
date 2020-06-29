@@ -1,13 +1,17 @@
 use std::time::Duration;
 
-use brokaw::client::ClientConfig;
 use brokaw::types::command as cmd;
+use brokaw::{ClientConfig, ConnectionConfig};
 
 fn main() -> anyhow::Result<()> {
     env_logger::from_env(env_logger::Env::default().default_filter_or("debug")).init();
 
     let mut client = ClientConfig::default()
-        .read_timeout(Some(Duration::from_secs(10)))
+        .connection_config(
+            ConnectionConfig::default()
+                .read_timeout(Some(Duration::from_secs(10)))
+                .to_owned(),
+        )
         .group(Some("mozilla.dev.platform"))
         .connect(("news.mozilla.org", 119))?;
 

@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::str::{from_utf8, from_utf8_unchecked};
 
 use crate::error::Error;
-use crate::types::prelude::Kind;
+
 use crate::types::response_code::ResponseCode;
 
 /// A response returned by the low-level [`NntpConnection`](super::connection::NntpConnection)
@@ -47,8 +47,8 @@ impl RawResponse {
     }
 
     /// Converts a response into an error if it does not match the provided status
-    pub(crate) fn fail_unless(self, desired: Kind) -> Result<RawResponse, Error> {
-        if self.code() != ResponseCode::Known(desired) {
+    pub fn fail_unless(self, desired: impl Into<ResponseCode>) -> Result<RawResponse, Error> {
+        if self.code() != desired.into() {
             Err(Error::failure(self))
         } else {
             Ok(self)

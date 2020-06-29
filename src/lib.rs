@@ -19,7 +19,7 @@
 //!
 //! ---
 //!
-//! Please check out the in-repo [README](https://github.com/sgg/brokaw) for examples.
+//! Please check out the [git repository](https://github.com/sgg/brokaw) examples.
 
 #[cfg(doctest)]
 doc_comment::doctest!("../README.md");
@@ -40,6 +40,8 @@ pub mod raw;
 pub mod types;
 
 #[doc(inline)]
-pub use client::NntpClient;
+pub use client::{ClientConfig, NntpClient};
 #[doc(inline)]
-pub use raw::connection::NntpConnection;
+pub use raw::connection::{ConnectionConfig, NntpConnection};
+#[doc(inline)]
+pub use raw::Compression;

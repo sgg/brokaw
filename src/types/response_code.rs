@@ -48,6 +48,16 @@ impl ResponseCode {
         let code = u16::from(*self);
         code >= 500 && code < 600
     }
+
+    /// Returns true if the response is a Known multiline response
+    ///
+    /// Unknown responses are always false
+    pub fn is_multiline(&self) -> bool {
+        match self {
+            ResponseCode::Known(k) => k.is_multiline(),
+            ResponseCode::Unknown(_) => false,
+        }
+    }
 }
 
 impl From<u16> for ResponseCode {

@@ -59,3 +59,8 @@ mod rfc4643;
 
 #[doc(inline)]
 pub use rfc4643::*;
+
+mod xfeature;
+
+#[doc(inline)]
+pub use xfeature::*;

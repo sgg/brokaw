@@ -7,7 +7,9 @@ use std::io::{Read, Write};
 /// A raw NNTP session
 #[derive(Debug)]
 pub enum NntpStream {
+    /// A stream using TLS
     Tls(TlsStream<TcpStream>),
+    /// A plain text stream
     Tcp(TcpStream),
 }
 

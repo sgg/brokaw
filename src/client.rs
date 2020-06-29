@@ -1,13 +1,12 @@
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 use std::net::ToSocketAddrs;
-use std::time::Duration;
 
 use log::*;
 
 use crate::error::{Error, Result};
-use crate::raw::connection::{NntpConnection, TlsConfig};
 
+use crate::raw::connection::{ConnectionConfig, NntpConnection};
 use crate::raw::response::RawResponse;
 use crate::types::command as cmd;
 use crate::types::prelude::*;
@@ -95,19 +94,14 @@ impl NntpClient {
     ///     let mut client = ClientConfig::default()
     ///         .connect(("news.modeswitching.notreal", 119))?;
     ///
-    ///     let resp: Motd = client.command(cmd::ModeReader, false)?.try_into()?;
+    ///     let resp: Motd = client.command(cmd::ModeReader)?.try_into()?;
     ///     println!("Motd: {}", resp.motd);
     ///     Ok(())
     /// }
     /// ```
     /// </details>
-    pub fn command(&mut self, c: impl NntpCommand, force_multiline: bool) -> Result<RawResponse> {
-        let resp = if force_multiline {
-            self.conn.command_multiline(&c)
-        } else {
-            self.conn.command(&c)
-        }?;
-
+    pub fn command(&mut self, c: impl NntpCommand) -> Result<RawResponse> {
+        let resp = self.conn.command(&c)?;
         Ok(resp)
     }
 
@@ -227,33 +221,24 @@ impl NntpClient {
 }
 
 /// Configuration for an [`NntpClient`]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ClientConfig {
-    tls_config: Option<TlsConfig>,
     authinfo: Option<(String, String)>,
     group: Option<String>,
-    read_timeout: Option<Duration>,
+    conn_config: ConnectionConfig,
 }
 
 impl ClientConfig {
     /// Perform an AUTHINFO USER/PASS authentication after connecting to the server
     ///
     /// https://tools.ietf.org/html/rfc4643#section-2.3
-    pub fn authinfo_user_pass(&mut self, username: String, password: String) -> &mut Self {
-        self.authinfo = Some((username, password));
+    pub fn authinfo_user_pass(
+        &mut self,
+        username: impl AsRef<str>,
+        password: impl AsRef<str>,
+    ) -> &mut Self {
+        self.authinfo = Some((username.as_ref().to_string(), password.as_ref().to_string()));
         self
-    }
-
-    /// Change the tls configuration
-    pub fn tls_config(&mut self, config: TlsConfig) -> &mut Self {
-        self.tls_config = Some(config);
-        self
-    }
-
-    /// Use the default TLS configuration
-    pub fn default_tls(&mut self, domain: String) -> Result<&mut Self> {
-        self.tls_config = Some(TlsConfig::default_connector(domain)?);
-        Ok(self)
     }
 
     /// Join a group upon connection
@@ -264,18 +249,23 @@ impl ClientConfig {
         self
     }
 
-    /// The read timeout of the underlying socket
-    pub fn read_timeout(&mut self, duration: Option<Duration>) -> &mut Self {
-        self.read_timeout = duration;
+    /// Use the default TLS configuration
+    pub fn default_tls(&mut self, domain: String) -> Result<&mut Self> {
+        self.conn_config.default_tls(domain)?;
+        Ok(self)
+    }
+
+    /// Set the configuration of the underlying [`NntpConnection`]
+    ///
+    /// Note that this will override the TLS configuration set by [`default_tls`](Self::default_tls)
+    pub fn connection_config(&mut self, config: ConnectionConfig) -> &mut Self {
+        self.conn_config = config;
         self
     }
 
-    // FIXME(ux): Add better timeout support
-
     /// Resolves the configuration into a client
     pub fn connect(&self, addr: impl ToSocketAddrs) -> Result<NntpClient> {
-        let (mut conn, conn_response) =
-            NntpConnection::connect(addr, self.tls_config.clone(), self.read_timeout)?;
+        let (mut conn, conn_response) = NntpConnection::connect(addr, self.conn_config.clone())?;
 
         debug!(
             "Connected. Server returned `{}`",
@@ -284,7 +274,7 @@ impl ClientConfig {
 
         // FIXME(ux) check capabilities before attempting auth info
         if let Some((username, password)) = &self.authinfo {
-            if self.tls_config.is_none() {
+            if self.conn_config.tls_config.is_none() {
                 warn!("TLS is not enabled, credentials will be sent in the clear!");
             }
             debug!("Authenticating with AUTHINFO USER/PASS");
@@ -308,17 +298,6 @@ impl ClientConfig {
             capabilities,
             group,
         })
-    }
-}
-
-impl Default for ClientConfig {
-    fn default() -> Self {
-        Self {
-            tls_config: None,
-            authinfo: None,
-            group: None,
-            read_timeout: None,
-        }
     }
 }
 

@@ -21,3 +21,10 @@ pub(crate) mod stream;
 pub use connection::{NntpConnection, TlsConfig};
 #[doc(inline)]
 pub use response::{DataBlocks, RawResponse};
+
+#[doc(inline)]
+pub use stream::NntpStream;
+
+pub(crate) mod compression;
+
+pub use compression::Compression;

@@ -123,6 +123,18 @@ mod tests {
         fn happy_path() {
             assert_eq!(take_line(MOTD), Ok((&b""[..], MOTD_NO_CRLF)));
         }
+
+        #[test]
+        fn test_gzip() {
+            let header = include_bytes!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/tests/xover_gzip_header"
+            ));
+
+            let (rest, data) = take_line(header).unwrap();
+            assert_eq!(rest.len(), 0);
+            assert_eq!(data, &header[..header.len() - 2]);
+        }
     }
 
     mod test_parse_data_block {

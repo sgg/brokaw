@@ -1,14 +1,15 @@
 //! This example demonstrates how to use the NntpConnection to retrieve an article
 use std::convert::TryFrom;
 
-use brokaw::raw::connection::NntpConnection;
 use brokaw::types::command as cmd;
 use brokaw::types::prelude::*;
+use brokaw::{ConnectionConfig, NntpConnection};
 
 fn main() -> anyhow::Result<()> {
     env_logger::from_env(env_logger::Env::default().default_filter_or("debug")).init();
 
-    let (mut conn, _resp) = NntpConnection::connect(("news.mozilla.org", 119), None, None)?;
+    let (mut conn, _resp) =
+        NntpConnection::connect(("news.mozilla.org", 119), ConnectionConfig::default())?;
 
     let group_resp = conn.command(&cmd::Group("mozilla.dev.platform".to_string()))?;
     let group = Group::try_from(&group_resp)?;
