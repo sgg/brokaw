@@ -3,8 +3,8 @@ use std::time::Duration;
 use log::*;
 
 use brokaw::client::ClientConfig;
-use structopt::StructOpt;
 use brokaw::ConnectionConfig;
+use structopt::StructOpt;
 
 /// Connect to a server and get the info for a specified group
 ///
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ConnectionConfig::default()
                     .read_timeout(Some(Duration::from_secs(5)))
                     .default_tls(&address)?
-                    .to_owned()
+                    .to_owned(),
             );
 
         config
