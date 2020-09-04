@@ -36,10 +36,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = {
         let mut config = ClientConfig::default();
+
         config
             .default_tls(address.clone())?
             .authinfo_user_pass(username, password)
             .group(Some(group));
+
         config
     };
 
