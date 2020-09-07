@@ -1,5 +1,9 @@
-use brokaw::client::ClientConfig;
+use std::time::Duration;
+
 use log::*;
+
+use brokaw::client::ClientConfig;
+use brokaw::ConnectionConfig;
 use structopt::StructOpt;
 
 /// Connect to a server and get the info for a specified group
@@ -38,9 +42,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut config = ClientConfig::default();
 
         config
-            .default_tls(address.clone())?
             .authinfo_user_pass(username, password)
-            .group(Some(group));
+            .group(Some(group))
+            .connection_config(
+                ConnectionConfig::default()
+                    .read_timeout(Some(Duration::from_secs(5)))
+                    .default_tls(&address)?
+                    .to_owned(),
+            );
 
         config
     };

@@ -100,6 +100,7 @@ impl fmt::Debug for TlsConfig {
 ///
 /// ```no_run
 /// use std::time::Duration;
+/// use brokaw::ConnectionConfig;
 /// use brokaw::types::prelude::*;
 /// use brokaw::types::command as cmd;
 /// use brokaw::raw::connection::NntpConnection;
@@ -107,8 +108,9 @@ impl fmt::Debug for TlsConfig {
 /// fn main() -> Result<(), Box::<dyn std::error::Error>> {
 /// let (mut conn, init_resp) = NntpConnection::connect(
 ///         ("news.mozilla.org", 119),
-///         None,
-///         Some(Duration::from_secs(5))
+///         ConnectionConfig::default()
+///             .read_timeout(Some(Duration::from_secs(5)))
+///             .to_owned(),
 ///     )?;
 ///     assert_eq!(init_resp.code(), ResponseCode::Known(Kind::PostingAllowed));
 ///     let resp = conn.command(&cmd::Capabilities)?;
