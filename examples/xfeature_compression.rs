@@ -1,5 +1,6 @@
 use brokaw::types::command::{XFeatureCompress, XOver};
 
+use brokaw::types::ArticleNumber;
 use brokaw::*;
 use log::*;
 use structopt::StructOpt;
@@ -16,7 +17,7 @@ struct Opt {
     group: String,
     /// The number of headers to retrieve
     #[structopt(long, short)]
-    num_headers: u32,
+    num_headers: ArticleNumber,
     #[structopt(long)]
     username: String,
     #[structopt(long)]

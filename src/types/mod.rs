@@ -20,8 +20,8 @@ pub mod response_code;
 /// The number of an article relative to a specific Newsgroup
 ///
 /// Per [RFC 3977](https://tools.ietf.org/html/rfc3977#section-6) article numbers should fit within
-/// 31-bits.
-pub type ArticleNumber = u32;
+/// 31-bits but has been surpassed since.
+pub type ArticleNumber = u64;
 
 /// Re-exports of traits and response types
 pub mod prelude {
