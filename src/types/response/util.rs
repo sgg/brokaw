@@ -37,7 +37,7 @@ pub(crate) fn process_article_first_line(resp: &RawResponse) -> Result<(ArticleN
 
     iter.next(); // skip response code since we already parsed it
 
-    let number: u32 = parse_field(&mut iter, "article-number")?;
+    let number: ArticleNumber = parse_field(&mut iter, "article-number")?;
     // https://tools.ietf.org/html/rfc3977#section-9.8
     let message_id: String = parse_field(&mut iter, "message-id")?;
 

@@ -33,9 +33,9 @@ struct Opt {
 enum Cmd {
     Xover {
         #[structopt(short, long)]
-        low: u32,
+        low: u64,
         #[structopt(short, long)]
-        high: u32,
+        high: u64,
         #[structopt(short, long, parse(from_os_str))]
         out: Option<PathBuf>,
     },

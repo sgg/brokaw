@@ -8,11 +8,11 @@ use crate::types::response::util::{err_if_not_kind, parse_field};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Group {
     /// The _estimated_ number of articles in the group
-    pub number: u32,
+    pub number: ArticleNumber,
     /// The lowest reported article number
-    pub low: u32,
+    pub low: ArticleNumber,
     /// The highest reported article number
-    pub high: u32,
+    pub high: ArticleNumber,
     /// The name of the group
     pub name: String,
 }
