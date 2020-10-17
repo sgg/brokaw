@@ -1,9 +1,11 @@
-use std::fmt;
-
-/// An NNTP command
+/// A data-structure that represents an NNTP command
 ///
-/// All `NntpCommands` must implement [`fmt::Display`] such that
-/// [`fmt`](fmt::Display::fmt) returns the string that should be sent over the wire.
+/// All `NntpCommands` must implement [`Encode`] such that
+/// [`encode`](Encode::encode) returns the bytes that should be sent over the wire.
+///
+/// If the command can be represented using UTF-8, one can simply implement [`ToString`]
+/// (directly or via [`fmt::Display`](std::fmt::Display) as [`Encode`] is automatically implemented for
+/// types that implement [`ToString`].
 ///
 /// # Example: Implementing LISTGROUP
 /// ```
@@ -40,7 +42,21 @@ use std::fmt;
 ///
 /// assert_eq!(cmd.to_string(), "LISTGROUP misc.test 10-20")
 /// ```
-pub trait NntpCommand: fmt::Display {}
+pub trait NntpCommand: Encode {}
+
+/// A type that can be serialized for transmission
+///
+/// A blanket implementation is provided for types implementing [`ToString`].
+pub trait Encode {
+    /// Return a vector of bytes that can be sent to an NNTP server
+    fn encode(&self) -> Vec<u8>;
+}
+
+impl<T: ToString> Encode for T {
+    fn encode(&self) -> Vec<u8> {
+        self.to_string().into()
+    }
+}
 
 /// Commands specified in [RFC 3977](https://tools.ietf.org/html/rfc3977#appendix-B)
 mod rfc3977;

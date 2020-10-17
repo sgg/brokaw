@@ -250,8 +250,6 @@ impl ClientConfig {
     }
 
     /// Set the configuration of the underlying [`NntpConnection`]
-    ///
-    /// Note that this will override the TLS configuration set by [`default_tls`](Self::default_tls)
     pub fn connection_config(&mut self, config: ConnectionConfig) -> &mut Self {
         self.conn_config = config;
         self

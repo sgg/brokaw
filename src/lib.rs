@@ -6,16 +6,20 @@
     unconditional_recursion
 )]
 
-//! 🗞 Brokaw is an Usenet/NNTP client library
+//! 🗞 Brokaw is a NNTP (Usenet) library
 //!
 //! # APIs
 //!
-//! Brokaw provides two primary APIs:
+//! Brokaw provides two primary APIs for interacting with NNTP servers:
 //!
-//! 1. The [`NntpClient`] provides a higher-level that provides a a config based builder
-//! and automatic deserialization of responses into different types.
-//! 2. The [`NntpConnection`] provides a lower-level abstraction that only provides validation
-//! that messages adhere to NNTP's wire format.
+//! 1. The [`NntpClient`] provides a higher-level that provides a a config
+//! based builder and automatic deserialization of responses into different types.
+//! 2. The [`NntpConnection`] provides a lower-level abstraction that
+//! only provides validation that messages adhere to NNTP's wire format.
+//!
+//! Brokaw additionally provides strongly typed [commands](types::command),
+//! [responses](types::response), and the [`NntpCommand`](types::NntpCommand)
+//! trait for implementing your own strongly typed commands.
 //!
 //! ---
 //!
