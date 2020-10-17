@@ -13,7 +13,7 @@ use crate::raw::error::Result;
 use crate::raw::parse::{is_end_of_datablock, parse_data_block_line, parse_first_line};
 use crate::raw::response::{DataBlocks, RawResponse};
 use crate::raw::stream::NntpStream;
-use crate::types::command::{Encode, NntpCommand};
+use crate::types::command::NntpCommand;
 use crate::types::prelude::*;
 
 /// TLS configuration for an [`NntpConnection`]
