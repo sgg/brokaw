@@ -24,10 +24,7 @@ impl RawResponse {
 
     /// Return true if this response is a multi-line response and contains a data block section
     pub fn has_data_blocks(&self) -> bool {
-        match self.data_blocks {
-            Some(_) => true,
-            _ => false,
-        }
+        matches!(self.data_blocks, Some(_))
     }
 
     /// Return multi-line data blocks
