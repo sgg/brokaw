@@ -208,7 +208,7 @@ impl NntpConnection {
     ///
     /// The caller is responsible for reading the response
     pub fn send<C: NntpCommand>(&mut self, command: &C) -> Result<usize> {
-        let bytes = self.send_bytes(command.to_string().as_bytes())?;
+        let bytes = self.send_bytes(command.encode())?;
         Ok(bytes)
     }
 

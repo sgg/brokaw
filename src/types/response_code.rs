@@ -173,10 +173,7 @@ impl Kind {
     /// Rather than making the entire library more complex for this singular exception, the library
     /// assumes that code 211 DOES NOT correspond to a multi-line response.
     pub fn is_multiline(&self) -> bool {
-        match *self as u16 {
-            100..=101 | 215 | 220..=222 | 224..=225 | 230..=231 => true,
-            _ => false,
-        }
+        matches!(*self as u16, 100..=101 | 215 | 220..=222 | 224..=225 | 230..=231)
     }
 }
 
