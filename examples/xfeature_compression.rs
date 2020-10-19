@@ -50,7 +50,7 @@ fn main() -> anyhow::Result<()> {
     info!("Creating client...");
 
     let mut client = {
-        let mut config = ClientConfig::default();
+        let mut config = ClientConfig::new();
 
         if let (Some(uname), Some(pwd)) = (username, password) {
             config.authinfo_user_pass(uname, pwd);

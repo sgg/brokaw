@@ -21,6 +21,8 @@ use crate::types::prelude::*;
 /// In exchange for these niceties, `NntpClient` does not provide the low-allocation guarantees
 /// that `NntpConnection` does. If you are really concerned about memory management,
 /// you may want to use the [`NntpConnection`].
+///
+/// `NntpClient` can be created through the [`ClientConfig`] builder.
 #[derive(Debug)]
 pub struct NntpClient {
     conn: NntpConnection,
@@ -229,6 +231,11 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
+    /// Create a new NntpClient builder
+    pub fn new() -> Self {
+        ClientConfig::default()
+    }
+
     /// Perform an AUTHINFO USER/PASS authentication after connecting to the server
     ///
     /// https://tools.ietf.org/html/rfc4643#section-2.3

@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Creating config...");
 
     let config = {
-        let mut config = ClientConfig::default();
+        let mut config = ClientConfig::new();
 
         config
             .authinfo_user_pass(username, password)
