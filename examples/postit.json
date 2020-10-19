@@ -1,0 +1,12 @@
+{
+    "headers": [
+        ["Fax", "555-123-4567"],
+        ["X-Comments", "What is this header even for?"],
+        ["X-Comments", "What is life?"],
+        ["X-Comments", "What's for dinner?"]
+    ],
+    "from": "sgg@not.a.real.domain",
+    "newsgroups": ["test.jokes"],
+    "body": "Steal a man’s wallet and he’ll be poor for a day. But teach him to play an instrument and he’ll be poor for the rest of his life.",
+    "subject": "SFW Dad Jokes"
+}

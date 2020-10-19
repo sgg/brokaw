@@ -298,11 +298,32 @@ impl fmt::Display for Over {
 
 impl NntpCommand for Over {}
 
-pub use post::Post;
+pub use post::{InitiatePost, Post};
 
-/// Post commands and builders
+/// Commands and builders for posting articles
+///
+/// `POST` is a stateful command with two stages.
+/// First a client sends the `POST` command and checks the response. If the server returns
+/// the status code [`PostSendArticle`](crate::types::prelude::Kind) (340) then the client
+/// may send the contents of the article.
+///
+/// POST is effectively two separate commands, as such it is represented using two types
+/// in Brokaw:
+/// [`InitiatePost`] is used to initiate a transfer (stage 1), and [`Post`] is used to
+/// send the contents of the article (stage 2).
+///
+/// ## Posting an Article
+///
+/// Use [`Post::builder`] to create a set of article transfer commands
+///
+/// TODO(code example)
+///
+/// ---
+///
+/// For more information see [RFC 3397](https://tools.ietf.org/html/rfc3977#section-6.3.1).
 pub mod post {
     use std::collections::{HashMap, HashSet};
+    use std::fmt;
 
     use crate::types::command::Encode;
     use crate::types::prelude::*;
@@ -310,9 +331,26 @@ pub mod post {
     /// A line terminator for a multi-line data block
     const CRLF: &[u8] = b"\r\n";
 
-    /// Post an article to a newsgroup
+    // TODO(ux): Introduce typed Article with required fields per https://tools.ietf.org/html/rfc5536#section-3.1
+    // TODO(ux): Consider introducing borrowed data types to prevent needless allocs
+
+    /// Initiate an individual article transfer
     ///
-    /// This command should be constructed using [`Post::builder`].
+    /// See the [module docs](self) for info on how to use this.
+    #[derive(Clone, Copy, Debug, Default)]
+    pub struct InitiatePost;
+
+    impl fmt::Display for InitiatePost {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "POST")
+        }
+    }
+
+    impl NntpCommand for InitiatePost {}
+
+    /// Transfer an article to a news server
+    ///
+    /// See the [module docs](self) for info on how to use this.
     #[derive(Clone, Debug)]
     pub struct Post {
         headers: HashMap<String, HashSet<String>>,
@@ -320,13 +358,13 @@ pub mod post {
     }
 
     impl Post {
-        /// Create a builder for the post
+        /// Create a builder for an article transfer
         pub fn builder() -> Builder {
             Builder::new()
         }
     }
 
-    /// A builder for [`Post`]
+    /// A builder for article transfer commands
     #[derive(Clone, Debug, Default)]
     pub struct Builder {
         headers: HashMap<String, HashSet<String>>,
@@ -334,17 +372,25 @@ pub mod post {
     }
 
     impl Builder {
+        /*
+         TODO(rfc): Chew on the method names a bit as we're encroaching on Rust RFC 344
+          Maybe `header` for getting, `set_header` for setting (overwriting), and `append_header`
+          `push_header` or `add_header` for appending? "append" and "push" are used in Vec so those
+          should be familiar to folks but I can see arguments for add...
+         */
+
+        // n.b. this is private in the spirit of providing one path to creating posts (Post::builder)
         /// Create a new Post builder
-        pub fn new() -> Builder {
+        fn new() -> Builder {
             Self::default()
         }
 
-        /// Add a header
+        /// Append a header to the article
         ///
         /// Note that per [RFC 5322](https://tools.ietf.org/html/rfc5322#section-3.6) a header
         /// may be duplicated. As such duplicates will be maintained.
         ///
-        /// If you wish to overwrite a header that already exists see [`set_header`].
+        /// If you wish to overwrite a header that already exists see [`set_header`](Builder::set_header).
         pub fn header(&mut self, name: impl AsRef<str>, value: impl AsRef<str>) -> &mut Self {
             let name = name.as_ref().to_string();
             let value = value.as_ref().to_string();
@@ -354,7 +400,7 @@ pub mod post {
             self
         }
 
-        /// Set a header, overwriting any pre-existing values
+        /// Set a header, *overwriting* any pre-existing values
         pub fn set_header(&mut self, name: impl AsRef<str>, value: impl AsRef<str>) -> &mut Self {
             let name = name.as_ref().to_string();
             let value = value.as_ref().to_string();
@@ -366,7 +412,13 @@ pub mod post {
             self
         }
 
-        /// Add multiple headers to the article builder
+        /// Clear all of the headers matching the name
+        pub fn clear_header(&mut self, name: impl AsRef<str>) -> &mut Self {
+            self.headers.remove(name.as_str());
+            self
+        }
+
+        /// Append multiple headers to the article builder
         pub fn headers<K, V>(&mut self, headers: impl IntoIterator<Item = (K, V)>) -> &mut Self
         where
             K: AsRef<str>,
@@ -385,10 +437,10 @@ pub mod post {
             self
         }
 
-        /// Build the [`Post`] command
-        pub fn build(&self) -> Post {
+        /// Return a [`InitiatePost`] and [`Post`] command
+        pub fn build(&self) -> (InitiatePost, Post) {
             let Builder { headers, body } = self.clone();
-            Post { headers, body }
+            (InitiatePost, Post { headers, body })
         }
     }
 
@@ -415,16 +467,10 @@ pub mod post {
                 .iter()
                 .flat_map(|(name, vals)| vals.iter().map(move |val| (name, val)));
 
-            let first_line = b"POST";
-
             // create the output buffer
-            let mut buf: Vec<u8> = Vec::with_capacity(
-                first_line.len() + CRLF.len() + headers_len + self.body.len() + CRLF.len() + 1,
-            );
+            let mut buf: Vec<u8> =
+                Vec::with_capacity(headers_len + self.body.len() + CRLF.len() + 1);
 
-            // add the first line
-            buf.extend(first_line);
-            buf.extend(CRLF);
             // add the headers
             headers_iter.for_each(|(name, val)| {
                 buf.extend(name.as_bytes());
