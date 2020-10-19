@@ -46,7 +46,8 @@ impl RawResponse {
     /// Converts a response into an error if it does not match the provided status
     pub fn fail_unless(self, desired: impl Into<ResponseCode>) -> Result<RawResponse, Error> {
         if self.code() != desired.into() {
-            Err(Error::failure(self))
+            let msg = self.first_line_to_utf8_lossy().to_string();
+            Err(Error::failure_msg(self, msg))
         } else {
             Ok(self)
         }

@@ -41,6 +41,15 @@ impl Error {
         }
     }
 
+    pub(crate) fn failure_msg(resp: RawResponse, msg: String) -> Self {
+        let msg = Some(msg);
+        Error::Failure {
+            code: resp.code(),
+            resp,
+            msg,
+        }
+    }
+
     pub(crate) fn de(msg: impl AsRef<str>) -> Self {
         Error::Deserialization(msg.as_ref().to_string())
     }
