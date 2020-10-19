@@ -298,36 +298,188 @@ impl fmt::Display for Over {
 
 impl NntpCommand for Over {}
 
-// TODO(commands) complete POST implementation
-/*
-/// Post an article to the news server
-///
-/// POSTING is a two part exchange. The [`Initial`](Post::Initial) variant is used
-/// to determine if the server will accept the article while the [`Article`](Post::Article) is
-/// used to send the data.
-///
-///
-/// For more information see [RFC 3977 6.3.1](https://tools.ietf.org/html/rfc3977#section-6.3.1)
-#[derive(Clone, Debug)]
-enum Post<'a> {
-    Initial,
-    /// The article body NOT including the terminating sequence
-    Article(&'a [u8])
-}
+pub use post::Post;
 
-impl NntpCommand for Post<'_> {}
+/// Post commands and builders
+pub mod post {
+    use std::collections::{HashMap, HashSet};
 
-impl fmt::Display for Post<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Post::Initial => write!(f, "POST"),
-            Post::Article(body) => {
-                unimplemented!()
-            },
+    use crate::types::command::Encode;
+    use crate::types::prelude::*;
+
+    /// A line terminator for a multi-line data block
+    const CRLF: &[u8] = b"\r\n";
+
+    /// Post an article to a newsgroup
+    ///
+    /// This command should be constructed using [`Post::builder`].
+    #[derive(Clone, Debug)]
+    pub struct Post {
+        headers: HashMap<String, HashSet<String>>,
+        body: Vec<u8>,
+    }
+
+    impl Post {
+        /// Create a builder for the post
+        pub fn builder() -> Builder {
+            Builder::new()
+        }
+    }
+
+    /// A builder for [`Post`]
+    #[derive(Clone, Debug, Default)]
+    pub struct Builder {
+        headers: HashMap<String, HashSet<String>>,
+        body: Vec<u8>,
+    }
+
+    impl Builder {
+        /// Create a new Post builder
+        pub fn new() -> Builder {
+            Self::default()
+        }
+
+        /// Add a header
+        ///
+        /// Note that per [RFC 5322](https://tools.ietf.org/html/rfc5322#section-3.6) a header
+        /// may be duplicated. As such duplicates will be maintained.
+        ///
+        /// If you wish to overwrite a header that already exists see [`set_header`].
+        pub fn header(&mut self, name: impl AsRef<str>, value: impl AsRef<str>) -> &mut Self {
+            let name = name.as_ref().to_string();
+            let value = value.as_ref().to_string();
+
+            self.headers.entry(name).or_default().insert(value);
+
+            self
+        }
+
+        /// Set a header, overwriting any pre-existing values
+        pub fn set_header(&mut self, name: impl AsRef<str>, value: impl AsRef<str>) -> &mut Self {
+            let name = name.as_ref().to_string();
+            let value = value.as_ref().to_string();
+
+            let entry = self.headers.entry(name).or_default();
+            entry.clear();
+            entry.insert(value);
+
+            self
+        }
+
+        /// Add multiple headers to the article builder
+        pub fn headers<K, V>(&mut self, headers: impl IntoIterator<Item = (K, V)>) -> &mut Self
+        where
+            K: AsRef<str>,
+            V: AsRef<str>,
+        {
+            headers.into_iter().for_each(|(name, value)| {
+                self.header(name, value);
+            });
+
+            self
+        }
+
+        /// Set the body for the article
+        pub fn body(&mut self, body: impl AsRef<[u8]>) -> &mut Self {
+            self.body = body.as_ref().to_owned();
+            self
+        }
+
+        /// Build the [`Post`] command
+        pub fn build(&self) -> Post {
+            let Builder { headers, body } = self.clone();
+            Post { headers, body }
+        }
+    }
+
+    impl NntpCommand for Post {}
+
+    impl Encode for Post {
+        fn encode(&self) -> Vec<u8> {
+            let header_sep = b": ";
+            // n.b. there are probably 1s-10s of headers and iterating is cheaper than allocating
+            let headers_len = self
+                .headers
+                .iter()
+                .flat_map(|(name, vals)| {
+                    let name_len = name.len();
+                    vals.iter().map(move |val| (name_len, val.len()))
+                })
+                // add bytes for the delimiter chars
+                .fold(0, |acc, (name_len, val_len)| {
+                    acc + name_len + header_sep.len() + val_len + CRLF.len()
+                });
+
+            let headers_iter = self
+                .headers
+                .iter()
+                .flat_map(|(name, vals)| vals.iter().map(move |val| (name, val)));
+
+            let first_line = b"POST";
+
+            // create the output buffer
+            let mut buf: Vec<u8> = Vec::with_capacity(
+                first_line.len() + CRLF.len() + headers_len + self.body.len() + CRLF.len() + 1,
+            );
+
+            // add the first line
+            buf.extend(first_line);
+            buf.extend(CRLF);
+            // add the headers
+            headers_iter.for_each(|(name, val)| {
+                buf.extend(name.as_bytes());
+                buf.extend(b": ");
+                buf.extend(val.as_bytes());
+                buf.extend(CRLF);
+            });
+            // add an empty line to mark the end of the headers
+            buf.extend(CRLF);
+            // add the body
+            buf.extend(&self.body);
+            // add the data blocks terminator
+            buf.extend(CRLF);
+            buf.extend(b".");
+
+            buf
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn smoke_test() {
+            let first_line = b"POST\r\n";
+            let body = r#"In bug 1630935 [1], I intend to deprecate support for drawing
+stretched MathML operators using the STIXGeneral fonts with a use
+counter, deprecation warning, and a pref to gate the feature (off by
+default on nightly)."#;
+
+            let post = Post::builder()
+                .header(
+                    "Message-ID",
+                    "<b976e951-174a-4aba-9cd6-628b9b3418dd@googlegroups.com>",
+                )
+                .header(
+                    "Subject",
+                    "Intent to deprecate: stretching MathML operators with STIXGeneral fonts",
+                )
+                .header("Newsgroups", "test.jokes")
+                .header("From", "dazabani@igalia.com")
+                .header("User-Agent", "G2/1.0")
+                .body(body)
+                .build();
+
+            let encoded = post.encode();
+
+            assert!(encoded.starts_with(first_line));
+            assert!(encoded.ends_with(b"\r\n."));
+            let trailer = format!("{}\r\n.", body);
+            assert!(encoded.ends_with(trailer.as_bytes()));
         }
     }
 }
-*/
 
 /// Close the connection
 #[derive(Clone, Copy, Debug)]
