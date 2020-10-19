@@ -12,6 +12,7 @@ struct Opt {
     address: String,
     #[structopt(long, short, default_value = "563")]
     port: u16,
+
     /// The group to read the headers from
     #[structopt(long, short)]
     group: String,
@@ -19,9 +20,12 @@ struct Opt {
     #[structopt(long, short)]
     num_headers: ArticleNumber,
     #[structopt(long)]
-    username: String,
+    username: Option<String>,
     #[structopt(long)]
     password: Option<String>,
+    /// Disable TLS
+    #[structopt(long)]
+    no_tls: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -34,26 +38,38 @@ fn main() -> anyhow::Result<()> {
         num_headers,
         username,
         password,
+        no_tls,
     } = Opt::from_args();
 
-    let password = if let Some(pw) = password {
-        pw
-    } else {
-        rpassword::prompt_password_stderr("Password: ")?
+    let password = match (&username, &password) {
+        (Some(_), Some(_)) => password,
+        (Some(_), None) => Some(rpassword::prompt_password_stderr("Password: ")?),
+        _ => None,
     };
 
     info!("Creating client...");
 
-    let mut client = ClientConfig::default()
-        .group(Some(group.clone()))
-        .authinfo_user_pass(username, password)
-        .connection_config(
-            ConnectionConfig::new()
-                .compression(Some(Compression::XFeature))
-                .default_tls(&address)?
-                .to_owned(),
-        )
-        .connect((address.as_str(), port))?;
+    let mut client = {
+        let mut config = ClientConfig::default();
+
+        if let (Some(uname), Some(pwd)) = (username, password) {
+            config.authinfo_user_pass(uname, pwd);
+        }
+
+        let mut conn_config = ConnectionConfig::new();
+        let conn_config = if no_tls {
+            &mut conn_config
+        } else {
+            conn_config.default_tls(&address)?
+        }
+        .compression(Some(Compression::XFeature))
+        .to_owned();
+
+        config
+            .group(Some(group))
+            .connection_config(conn_config)
+            .connect((address.as_str(), port))?
+    };
 
     let group = client.group().unwrap().to_owned();
 
