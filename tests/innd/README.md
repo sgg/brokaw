@@ -24,3 +24,21 @@ Note that `innd` only seems to adhere to `SIGQUIT` so you must kill it with (CTR
     LIST" \
     | nc localhost 119
     ```
+
+    ```shell script
+    ❯  echo \
+    'AUTHINFO USER newsreader
+    AUTHINFO PASS readthenews
+    POST
+    From: "Bob Hyuckster" <hycukhycuk@not.real"
+    Newsgroups: test.jokes
+    Organization: Billing
+    Subject: FW: FW: FW: Hilarious Joke
+   
+    <Problematic joke goes here>
+    .
+    ' \
+   iu
+    | nc localhost 119
+    ```
+3. Post an article even
