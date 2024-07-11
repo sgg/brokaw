@@ -254,7 +254,32 @@ impl fmt::Display for ModeReader {
 
 impl NntpCommand for ModeReader {}
 
-// TODO(commands) implement NEWGROUPS
+// implement NEWGROUPS
+
+/// List newsgroups created since a specific date
+#[derive(Clone, Debug)]
+pub struct NewGroups {
+    /// The date from which to list newsgroups
+    pub date: String,
+    /// the time from which to list newsgroups
+    pub time: String,
+    /// Optional distributions to include
+    pub distributions: Option<String>,
+}
+
+impl fmt::Display for NewGroups {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "NEWGROUPS {} {} {}",
+            self.date,
+            self.time,
+            self.distributions.as_deref().unwrap_or("")
+        )
+    }
+}
+
+impl NntpCommand for NewGroups {}
 
 // TODO(commands) implement NEWNEWS
 

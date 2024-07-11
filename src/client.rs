@@ -105,6 +105,31 @@ impl NntpClient {
         Ok(resp)
     }
 
+    /// List new newsgroups created since a specific date and time
+    ///
+    /// # Arguments
+    ///
+    /// * `date` - The date from which to list new newsgroups
+    /// * `time` - The time from which to list new newsgroups
+    /// * `distributions` - Optional distributions to include
+    ///
+    /// # Returns
+    ///
+    /// A result containing the raw response from the server
+    pub fn newgroups(
+        &mut self,
+        date: &str,
+        time: &str,
+        distributions: Option<&str>,
+    ) -> Result<RawResponse> {
+        let command = cmd::NewGroups {
+            date: date.to_string(),
+            time: time.to_string(),
+            distributions: distributions.map(|d| d.to_string()),
+        };
+        self.command(command)
+    }
+
     /// Get the currently selected group
     pub fn config(&self) -> &ClientConfig {
         &self.config
