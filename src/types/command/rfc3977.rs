@@ -269,13 +269,10 @@ pub struct NewGroups {
 
 impl fmt::Display for NewGroups {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "NEWGROUPS {} {} {}",
-            self.date,
-            self.time,
-            self.distributions.as_deref().unwrap_or("")
-        )
+        match &self.distributions {
+            Some(dist) => write!(f, "NEWGROUPS {} {} {}", self.date, self.time, dist),
+            None => write!(f, "NEWGROUPS {} {}", self.date, self.time),
+        }
     }
 }
 
